@@ -35,18 +35,4 @@ npm run dev    # http://localhost:3000
 npm run build  # статический экспорт в ./out
 ```
 
-Деплой — автоматически на GitHub Pages при пуше в `main` (см. `.github/workflows/deploy.yml`).
-
-## Размещение в iwel-presentations (/card)
-
-Конструктор также размещён в репозитории страниц проектов [likeahustla/iwel-presentations](https://github.com/likeahustla/iwel-presentations) по пути `/card`:
-**https://likeahustla.github.io/iwel-presentations/card/**
-
-Обновление после изменений в этом репозитории:
-
-```bash
-BASE_PATH=/iwel-presentations/card npm run build
-# скопировать содержимое out/ в папку card/ репозитория iwel-presentations и запушить
-```
-
-В корне iwel-presentations лежит `.nojekyll` — без него GitHub Pages выбрасывает папку `_next/` со скриптами и шрифтами.
+Деплой — автоматически на GitHub Pages при пуше в `main` (см. `.github/workflows/deploy.yml`). Точку монтирования можно переопределить переменной `BASE_PATH` при сборке (по умолчанию `/iWEL-Card-Builder`).
