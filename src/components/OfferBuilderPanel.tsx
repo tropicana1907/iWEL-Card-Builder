@@ -7,7 +7,7 @@ import { APARTMENT_TYPES } from '@/config/constants'
 import { imperialTemplate } from '@/projectTemplates/imperial'
 import { towersTemplate } from '@/projectTemplates/towers'
 import { saveApartment, loadApartments, loadApartmentWithPlan, loadProjectSitePlan } from '@/lib/storage'
-import { SITEPLAN_TEMPLATES, FLOORPLAN_TEMPLATES, templatesForProject } from '@/config/templateAssets'
+import { SITEPLAN_TEMPLATES, FLOORPLAN_TEMPLATES, FLOORPLAN_TABS, templatesForProject } from '@/config/templateAssets'
 import type { ApartmentEntry } from '@/types'
 
 const fmtNum = (n: number) =>
@@ -70,6 +70,8 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
   // Bundled template pickers
   const [showPlanTemplates, setShowPlanTemplates] = useState(false)
   const [showSitePlanTemplates, setShowSitePlanTemplates] = useState(false)
+  // Floorplan picker tab — defaults to the card's current project
+  const [planTab, setPlanTab] = useState<string>('imperial')
 
   const handleOpenAptPicker = () => {
     const all = loadApartments()
@@ -465,7 +467,13 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
 
         {/* Bundled floorplan templates */}
         <button
-          onClick={() => setShowPlanTemplates(v => !v)}
+          onClick={() => {
+            setShowPlanTemplates(v => !v)
+            // open on the tab of the card's current project
+            if (state.projectTemplate === 'imperial' || state.projectTemplate === 'towers') {
+              setPlanTab(state.projectTemplate)
+            }
+          }}
           className="w-full py-2.5 border border-imperial-bronze rounded text-xs text-imperial-bronze hover:bg-imperial-beige transition-colors font-semibold tracking-wide mb-3"
         >
           🖼 ШАБЛОННЫЕ ПЛАНИРОВКИ
@@ -477,8 +485,24 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
               <span className="text-xs font-semibold text-imperial-navy uppercase tracking-wide">Планировки проектов</span>
               <button onClick={() => setShowPlanTemplates(false)} className="text-gray-400 hover:text-imperial-navy text-base leading-none">×</button>
             </div>
-            <div className="grid grid-cols-2 gap-2 p-2 max-h-72 overflow-y-auto">
-              {templatesForProject(FLOORPLAN_TEMPLATES, state.projectTemplate).map(t => (
+            {/* Project tabs */}
+            <div className="flex border-b border-imperial-greige">
+              {FLOORPLAN_TABS.map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setPlanTab(tab.key)}
+                  className={`flex-1 py-2 text-xs font-semibold tracking-wide transition-colors
+                    ${planTab === tab.key
+                      ? 'bg-imperial-navy text-white'
+                      : 'bg-white text-imperial-navy hover:bg-imperial-ivory'
+                    }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 gap-2 p-2 max-h-80 overflow-y-auto">
+              {FLOORPLAN_TEMPLATES.filter(t => t.project === planTab).map(t => (
                 <button
                   key={t.id}
                   onClick={() => {
@@ -492,7 +516,9 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={t.src} alt={t.label} className="max-w-full max-h-full object-contain" loading="lazy" />
                   </div>
-                  <div className="text-[10px] text-imperial-navy px-1.5 py-1 text-left truncate">{t.label}</div>
+                  <div className="text-[11px] text-imperial-navy px-1.5 py-1 text-left leading-tight">
+                    {t.label.replace(/^[^·]+· /, '')}
+                  </div>
                 </button>
               ))}
             </div>
