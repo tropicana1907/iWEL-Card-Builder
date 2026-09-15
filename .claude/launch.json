@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "imperial-card-builder",
+      "runtimeExecutable": "/Users/ekaterinamihajlova/.nvm/versions/node/v20.20.2/bin/node",
+      "runtimeArgs": ["/Users/ekaterinamihajlova/.nvm/versions/node/v20.20.2/bin/npm", "run", "dev"],
+      "port": 3000,
+      "url": "http://localhost:3000"
+    }
+  ]
+}
