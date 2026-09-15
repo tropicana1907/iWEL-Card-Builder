@@ -4,6 +4,8 @@
 
 **Живая версия:** https://tropicana1907.github.io/iWEL-Card-Builder/
 
+**Встраивание на iwel.ru/card (Tilda):** готовый сниппет и инструкция — [docs/tilda-embed.html](docs/tilda-embed.html). Хостинг остаётся на GitHub Pages, обновления при пуше в `main` подхватываются на iwel.ru/card автоматически.
+
 ## Возможности
 
 - **Конструктор КП** — форма слева, живое превью карточки справа; экспорт в PNG / JPG / PDF / WhatsApp-сжатый JPG / буфер обмена

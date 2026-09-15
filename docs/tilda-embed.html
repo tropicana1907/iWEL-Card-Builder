@@ -1,0 +1,41 @@
+<!--
+  Вставка конструктора на страницу iwel.ru/card (Tilda).
+
+  Как разместить:
+  1. В Tilda: Создать страницу → Настройки страницы → «Адрес страницы» = card
+     (страница станет доступна как iwel.ru/card).
+  2. На страницу добавить блок: «Другое» → T123 «HTML-код».
+  3. Вставить в блок ВСЁ содержимое этого файла ниже (от <style> до </iframe>).
+  4. Опубликовать страницу.
+
+  Iframe растягивается на весь экран поверх остальных блоков Tilda, поэтому
+  страница должна быть пустой — только этот HTML-блок (шапку/подвал Tilda
+  на этой странице лучше отключить в настройках страницы).
+
+  allow="clipboard-write" нужен кнопке «📋 копировать в буфер» — без него
+  копирование внутри iframe блокируется браузером (сработает фолбэк на
+  скачивание PNG, но лучше разрешить).
+-->
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+  .iwel-card-frame {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    z-index: 9999;
+    background: #F0EBE3;
+  }
+</style>
+<iframe
+  class="iwel-card-frame"
+  src="https://tropicana1907.github.io/iWEL-Card-Builder/"
+  allow="clipboard-write; fullscreen"
+  title="iWEL Card Builder — конструктор коммерческих предложений"
+></iframe>
