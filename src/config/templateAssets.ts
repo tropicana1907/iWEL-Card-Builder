@@ -21,7 +21,7 @@ export const SITEPLAN_TEMPLATES: AssetTemplate[] = [
   {
     id: 'towers-aerial',
     project: 'towers',
-    label: 'Башни — вид сверху',
+    label: 'Towers — генплан',
     src: `${BASE}/templates/siteplans/towers-aerial.jpg`,
   },
 ]
@@ -32,9 +32,9 @@ export const FLOORPLAN_TEMPLATES: AssetTemplate[] = [
   { id: 'imperial-plan-3', project: 'imperial', label: 'Империал · вариант 3', src: `${BASE}/templates/floorplans/imperial-plan-3.webp` },
   { id: 'imperial-plan-4', project: 'imperial', label: 'Империал · вариант 4', src: `${BASE}/templates/floorplans/imperial-plan-4.webp` },
   { id: 'imperial-plan-5', project: 'imperial', label: 'Империал · вариант 5', src: `${BASE}/templates/floorplans/imperial-plan-5.webp` },
-  { id: 'towers-plan-1', project: 'towers', label: 'Башни · вариант 1', src: `${BASE}/templates/floorplans/towers-plan-1.webp` },
-  { id: 'towers-plan-2', project: 'towers', label: 'Башни · вариант 2', src: `${BASE}/templates/floorplans/towers-plan-2.webp` },
-  { id: 'towers-plan-3', project: 'towers', label: 'Башни · вариант 3', src: `${BASE}/templates/floorplans/towers-plan-3.webp` },
+  { id: 'towers-plan-1', project: 'towers', label: 'Towers · вариант 1', src: `${BASE}/templates/floorplans/towers-plan-1.webp` },
+  { id: 'towers-plan-2', project: 'towers', label: 'Towers · вариант 2', src: `${BASE}/templates/floorplans/towers-plan-2.webp` },
+  { id: 'towers-plan-3', project: 'towers', label: 'Towers · вариант 3', src: `${BASE}/templates/floorplans/towers-plan-3.webp` },
 ]
 
 // Current project first, the rest after — the manager most often needs

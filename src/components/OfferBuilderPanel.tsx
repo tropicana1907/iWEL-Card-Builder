@@ -181,7 +181,7 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
           <div className="flex gap-1.5">
             {([
               { v: 'imperial' as ProjectPreset, l: 'Империал' },
-              { v: 'towers' as ProjectPreset, l: 'Башни' },
+              { v: 'towers' as ProjectPreset, l: 'Towers' },
               { v: 'none' as ProjectPreset, l: 'Свой' },
             ]).map(({ v, l }) => (
               <button

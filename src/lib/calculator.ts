@@ -9,7 +9,7 @@ const MONTHS = 36
 export const PRESET_PRICES: Record<ProjectPreset, { label: string; pricePerSqm: number; maxMonths: number }> = {
   none: { label: 'Свой', pricePerSqm: 0, maxMonths: 60 },
   imperial: { label: 'Империал', pricePerSqm: 115_000, maxMonths: 36 },
-  towers: { label: 'Башни', pricePerSqm: 105_000, maxMonths: 36 },
+  towers: { label: 'Towers', pricePerSqm: 105_000, maxMonths: 36 },
 }
 
 export function calcForward(area: number, pricePerSqm: number, downPayment: number, months: number): CalcResult {

@@ -2,8 +2,8 @@ import type { ProjectTemplate } from './types'
 
 export const towersTemplate: ProjectTemplate = {
   id: 'towers',
-  name: 'БАШНИ',
-  shortName: 'БАШНИ',
+  name: 'TOWERS',
+  shortName: 'TOWERS',
   slogan: 'ВЫСОТА НОВОГО УРОВНЯ',
   address: '',
   disclaimer:

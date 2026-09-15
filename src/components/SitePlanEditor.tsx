@@ -377,7 +377,7 @@ export default function SitePlanEditor({
                     cursor: 'pointer',
                   }}
                 >
-                  {t.project === 'imperial' ? 'Империал' : t.project === 'towers' ? 'Башни' : t.label}
+                  {t.project === 'imperial' ? 'Империал' : t.project === 'towers' ? 'Towers' : t.label}
                 </button>
               ))}
             </span>
