@@ -2,44 +2,22 @@
 
 import { forwardRef } from 'react'
 import type { AppState, PricingResult } from '@/types'
-import { DIRECTION_ANGLES, RAY_HALF_ANGLES, TYPE_DISPLAY } from '@/config/constants'
+import { RAY_HALF_ANGLES, TYPE_DISPLAY } from '@/config/constants'
+import { buildSectorPath, directionRays, DEFAULT_COMPASS } from '@/lib/geometry'
 import { AdvantageIcon } from './Icons'
-import type { ProjectTemplate } from '@/projectTemplates/types'
+import type { ProjectTemplate, TemplateColors } from '@/projectTemplates/types'
 import { imperialTemplate } from '@/projectTemplates/imperial'
 
-// Inlined to avoid module initialization race with calculator.ts
 const fmt = (p: number) => p <= 0 ? '—' : new Intl.NumberFormat('ru-RU').format(p) + ' ₽'
 const parseArea = (s: string) => parseFloat(s.replace(',', '.')) || 0
 const parseFloors = (s: string) => s.split(/[,\s]+/).map(x => parseInt(x.trim(), 10)).filter(n => !isNaN(n) && n > 0)
 const formatFloors = (fs: number[]) => fs.length === 0 ? '—' : fs.join(' · ')
 
-// ─── colours (inline for html-to-image) ──────────────────────────────────────
-const C = {
-  navy: '#1B2D4F',
-  bronze: '#B5924C',
-  ivory: '#FAF8F3',
-  beige: '#F0EBE3',
-  greige: '#E5DDD4',
-  white: '#FFFFFF',
-}
+// Fonts self-hosted via next/font (see layout.tsx) — safe for html-to-image export
+const FONT_DISPLAY = "var(--font-display), Georgia, 'Times New Roman', serif"
+const FONT_SANS = "var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
-// ─── Ray geometry ─────────────────────────────────────────────────────────────
-function buildSectorPath(
-  cx: number, cy: number,
-  angleDeg: number, halfAngleDeg: number,
-  length: number
-): string {
-  const a1 = ((angleDeg - halfAngleDeg) * Math.PI) / 180
-  const a2 = ((angleDeg + halfAngleDeg) * Math.PI) / 180
-  const x1 = cx + length * Math.cos(a1)
-  const y1 = cy + length * Math.sin(a1)
-  const x2 = cx + length * Math.cos(a2)
-  const y2 = cy + length * Math.sin(a2)
-  const large = halfAngleDeg * 2 > 180 ? 1 : 0
-  return `M${cx},${cy} L${x1},${y1} A${length},${length} 0 ${large},1 ${x2},${y2} Z`
-}
-
-// ─── Financial block (Imperial style) ─────────────────────────────────────────
+// ─── Financial block ──────────────────────────────────────────────────────────
 interface FinancialBlockProps {
   number: string
   title: string
@@ -51,62 +29,64 @@ interface FinancialBlockProps {
   monthly?: string
   monthsLabel?: string
   accent?: boolean
-  height: number
+  grow?: number
+  colors: TemplateColors
 }
 
-function FinancialBlock({ number, title, pricePerSqm, total, totalLabel = 'Стоимость', downPayment, downPaymentLabel, monthly, monthsLabel, accent = false, height }: FinancialBlockProps) {
-  const bg = accent ? '#EEE9E1' : C.beige
+function FinancialBlock({ number, title, pricePerSqm, total, totalLabel = 'Стоимость', downPayment, downPaymentLabel, monthly, monthsLabel, accent = false, grow = 1, colors: C }: FinancialBlockProps) {
   const hasInstallment = !!downPayment
 
   return (
     <div style={{
-      height,
-      backgroundColor: bg,
-      borderRadius: '3px',
-      padding: '10px 14px',
+      flex: `${grow} 1 0`,
+      minHeight: 0,
+      backgroundColor: accent ? '#EEE9E1' : C.beige,
+      borderRadius: '4px',
+      padding: '14px 20px',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
-      gap: '3px',
+      gap: '4px',
       borderLeft: `3px solid ${C.bronze}`,
-      flexShrink: 0,
     }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-        <span style={{ fontSize: '18px', fontWeight: '700', color: C.bronze, letterSpacing: '0.05em' }}>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+        <span style={{ fontFamily: FONT_DISPLAY, fontSize: '22px', fontWeight: '600', color: C.bronze, letterSpacing: '0.04em' }}>
           {number}
         </span>
-        <span style={{ fontSize: '11px', color: C.navy, letterSpacing: '0.12em', fontWeight: '600', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: '12px', color: C.navy, letterSpacing: '0.14em', fontWeight: '700', textTransform: 'uppercase' }}>
           {title}
         </span>
       </div>
-      <div style={{ fontSize: '13px', color: C.bronze, letterSpacing: '0.05em', marginTop: '2px' }}>
-        {pricePerSqm}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', marginTop: '3px' }}>
-        <div style={{ fontSize: '10px', color: 'rgba(27,45,79,0.6)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+      {pricePerSqm && (
+        <div style={{ fontSize: '14px', color: C.bronze, letterSpacing: '0.04em', fontWeight: '600', fontVariantNumeric: 'tabular-nums' }}>
+          {pricePerSqm}
+        </div>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '3px' }}>
+        <div style={{ fontSize: '11px', color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           {totalLabel}
         </div>
-        <div style={{ fontSize: '17px', fontWeight: '700', color: C.navy, letterSpacing: '0.02em' }}>
+        <div style={{ fontSize: '24px', fontWeight: '800', color: C.navy, letterSpacing: '0.01em', fontVariantNumeric: 'tabular-nums' }}>
           {total}
         </div>
       </div>
       {hasInstallment && (
         <>
-          <div style={{ borderTop: `1px solid ${C.greige}`, margin: '3px 0' }} />
-          <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ borderTop: `1px solid ${C.greige}`, margin: '5px 0' }} />
+          <div style={{ display: 'flex', gap: '28px' }}>
             <div>
-              <div style={{ fontSize: '9px', color: 'rgba(27,45,79,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ fontSize: '10px', color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 {downPaymentLabel ?? 'Первоначальный взнос'}
               </div>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: C.navy }}>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: C.navy, fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
                 {downPayment}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '9px', color: 'rgba(27,45,79,0.6)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              <div style={{ fontSize: '10px', color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 {monthsLabel ?? 'Ежемесячно ≈'}
               </div>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: C.navy }}>
+              <div style={{ fontSize: '16px', fontWeight: '700', color: C.bronze, fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
                 {monthly}
               </div>
             </div>
@@ -118,7 +98,7 @@ function FinancialBlock({ number, title, pricePerSqm, total, totalLabel = 'Ст�
 }
 
 // ─── Universal calc blocks ─────────────────────────────────────────────────────
-function UniversalFinancialSection({ state, mainHeight }: { state: AppState; mainHeight: number }) {
+function UniversalFinancialSection({ state, colors }: { state: AppState; colors: TemplateColors }) {
   const calc = state.offerCalcResult
   const isStudio = state.type === 'Студия'
   const isReverse = state.offerCalcMode === 'reverse'
@@ -134,12 +114,10 @@ function UniversalFinancialSection({ state, mainHeight }: { state: AppState; mai
         title="СТОИМОСТЬ"
         pricePerSqm={ppm > 0 ? `${ppm.toLocaleString('ru-RU')} ₽/м²` : ''}
         total={fmt(calc.totalPrice)}
-        height={mainHeight - 40}
+        colors={colors}
       />
     )
   }
-
-  const h = Math.floor((mainHeight - 40 - 12) / 2)
 
   return (
     <>
@@ -148,7 +126,7 @@ function UniversalFinancialSection({ state, mainHeight }: { state: AppState; mai
         title="ПОЛНАЯ СТОИМОСТЬ"
         pricePerSqm={ppm > 0 ? `${ppm.toLocaleString('ru-RU')} ₽/м²` : ''}
         total={fmt(calc.totalPrice)}
-        height={h}
+        colors={colors}
       />
       <FinancialBlock
         number="02"
@@ -156,19 +134,20 @@ function UniversalFinancialSection({ state, mainHeight }: { state: AppState; mai
         pricePerSqm={isReverse ? 'рассчитан необходимый взнос' : ''}
         total={fmt(calc.remainingBalance)}
         totalLabel="Остаток"
-        downPayment={fmt(isReverse ? calc.requiredDownPayment : calc.requiredDownPayment)}
+        downPayment={fmt(calc.requiredDownPayment)}
         downPaymentLabel={isReverse ? 'Необходимый взнос' : 'Первоначальный взнос'}
         monthly={fmt(calc.monthlyPayment)}
         monthsLabel="Ежемесячный платёж ≈"
         accent
-        height={h + 12}
+        grow={1.4}
+        colors={colors}
       />
     </>
   )
 }
 
-// ─── Imperial pricing blocks ───────────────────────────────────────────────────
-function ImperialFinancialSection({ pricing, mainHeight }: { pricing: PricingResult; mainHeight: number }) {
+// ─── Imperial legacy pricing blocks (hardcoded price grid — Imperial only) ─────
+function ImperialFinancialSection({ pricing, colors }: { pricing: PricingResult; colors: TemplateColors }) {
   const { isStudio } = pricing
 
   if (isStudio) {
@@ -179,7 +158,7 @@ function ImperialFinancialSection({ pricing, mainHeight }: { pricing: PricingRes
           title="100% ОПЛАТА"
           pricePerSqm="85 000 ₽/м²"
           total={fmt(pricing.cashPrice)}
-          height={Math.floor((mainHeight - 40 - 12) / 2)}
+          colors={colors}
         />
         <FinancialBlock
           number="02"
@@ -187,7 +166,7 @@ function ImperialFinancialSection({ pricing, mainHeight }: { pricing: PricingRes
           pricePerSqm="80 000 ₽/м²"
           total={fmt(pricing.svoCashPrice)}
           accent
-          height={Math.floor((mainHeight - 40 - 12) / 2)}
+          colors={colors}
         />
       </>
     )
@@ -200,7 +179,7 @@ function ImperialFinancialSection({ pricing, mainHeight }: { pricing: PricingRes
         title="100% ОПЛАТА"
         pricePerSqm="85 000 ₽/м²"
         total={fmt(pricing.cashPrice)}
-        height={Math.floor((mainHeight - 40 - 48) / 4)}
+        colors={colors}
       />
       <FinancialBlock
         number="02"
@@ -211,7 +190,8 @@ function ImperialFinancialSection({ pricing, mainHeight }: { pricing: PricingRes
         downPayment={fmt(pricing.downPayment)}
         monthly={fmt(pricing.monthlyInstallment)}
         monthsLabel="Ежемесячный платёж ≈"
-        height={Math.floor((mainHeight - 40 - 48) / 4) + 36}
+        grow={1.35}
+        colors={colors}
       />
       <FinancialBlock
         number="03"
@@ -219,7 +199,7 @@ function ImperialFinancialSection({ pricing, mainHeight }: { pricing: PricingRes
         pricePerSqm="80 000 ₽/м²"
         total={fmt(pricing.svoCashPrice)}
         accent
-        height={Math.floor((mainHeight - 40 - 48) / 4)}
+        colors={colors}
       />
       <FinancialBlock
         number="04"
@@ -231,9 +211,46 @@ function ImperialFinancialSection({ pricing, mainHeight }: { pricing: PricingRes
         monthly={fmt(pricing.svoMonthlyInstallment)}
         monthsLabel="Ежемесячный платёж ≈"
         accent
-        height={Math.floor((mainHeight - 40 - 48) / 4) + 36}
+        grow={1.35}
+        colors={colors}
       />
     </>
+  )
+}
+
+// ─── Compass rose (shows card viewer which way is north on this plan) ──────────
+function CompassRose({ compass, colors }: { compass: { northAngle: number; eastAngle: number; southAngle: number; westAngle: number }; colors: TemplateColors }) {
+  const R = 26
+  const letters = [
+    { l: 'С', a: compass.northAngle, main: true },
+    { l: 'В', a: compass.eastAngle, main: false },
+    { l: 'Ю', a: compass.southAngle, main: false },
+    { l: 'З', a: compass.westAngle, main: false },
+  ]
+  return (
+    <g>
+      <circle r={R + 10} fill="rgba(250,248,243,0.85)" stroke={colors.bronze} strokeWidth="1" />
+      {letters.map(({ l, a, main }) => {
+        const rad = (a * Math.PI) / 180
+        const x = (R - 4) * Math.cos(rad)
+        const y = (R - 4) * Math.sin(rad)
+        return (
+          <text
+            key={l}
+            x={x}
+            y={y + 4.5}
+            textAnchor="middle"
+            fontSize={main ? 15 : 12}
+            fontWeight={main ? 800 : 600}
+            fill={main ? colors.bronze : colors.navy}
+            fontFamily={FONT_SANS}
+          >
+            {l}
+          </text>
+        )
+      })}
+      <circle r="2.5" fill={colors.bronze} />
+    </g>
   )
 }
 
@@ -250,11 +267,12 @@ interface SitePlanProps {
   rayOpacity: number
   height: number
   compassOrientation?: { northAngle: number; eastAngle: number; southAngle: number; westAngle: number } | null
+  colors: TemplateColors
 }
 
 function SitePlanSection(props: SitePlanProps) {
   const { customSitePlan, anchorX, anchorY, viewWest, viewNorth, viewEast, viewSouth,
-    rayWidth, rayOpacity, height, compassOrientation } = props
+    rayWidth, rayOpacity, height, compassOrientation, colors: C } = props
 
   const W = 1080
   const H = height
@@ -265,21 +283,8 @@ function SitePlanSection(props: SitePlanProps) {
   const halfAngle = RAY_HALF_ANGLES[rayWidth] ?? 30
   const rayLen = Math.sqrt(W * W + H * H)
   const rayColor = `rgba(215,195,155,${rayOpacity / 100})`
-
-  // Use custom compass orientation if provided, else Imperial default
-  const compass = compassOrientation ?? {
-    northAngle: DIRECTION_ANGLES.NORTH,
-    eastAngle: DIRECTION_ANGLES.EAST,
-    southAngle: DIRECTION_ANGLES.SOUTH,
-    westAngle: DIRECTION_ANGLES.WEST,
-  }
-
-  const views = [
-    { key: 'west', angle: compass.westAngle, active: viewWest },
-    { key: 'north', angle: compass.northAngle, active: viewNorth },
-    { key: 'east', angle: compass.eastAngle, active: viewEast },
-    { key: 'south', angle: compass.southAngle, active: viewSouth },
-  ]
+  const compass = compassOrientation ?? DEFAULT_COMPASS
+  const rays = directionRays(compass, { west: viewWest, north: viewNorth, east: viewEast, south: viewSouth })
 
   return (
     <div style={{ width: W, height: H, position: 'relative', overflow: 'hidden', backgroundColor: '#E8E2D8' }}>
@@ -310,37 +315,42 @@ function SitePlanSection(props: SitePlanProps) {
         </div>
       )}
 
-      {ax !== null && ay !== null && (
-        <svg
-          style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
-          width={W}
-          height={H}
-          viewBox={`0 0 ${W} ${H}`}
-        >
-          {views.filter(v => v.active).map(v => {
-            const path = buildSectorPath(ax, ay, v.angle, halfAngle, rayLen)
-            return (
+      <svg
+        style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
+        width={W}
+        height={H}
+        viewBox={`0 0 ${W} ${H}`}
+      >
+        {ax !== null && ay !== null && (
+          <>
+            {rays.filter(v => v.active).map(v => (
               <path
                 key={v.key}
-                d={path}
+                d={buildSectorPath(ax, ay, v.angle, halfAngle, rayLen)}
                 fill={rayColor}
                 stroke="rgba(181,146,76,0.3)"
                 strokeWidth="1"
               />
-            )
-          })}
-          <circle cx={ax} cy={ay} r="7" fill={C.bronze} opacity="0.9" />
-          <circle cx={ax} cy={ay} r="3" fill={C.white} />
-        </svg>
-      )}
+            ))}
+            <circle cx={ax} cy={ay} r="7" fill={C.bronze} opacity="0.9" />
+            <circle cx={ax} cy={ay} r="3" fill={C.white} />
+          </>
+        )}
+        {customSitePlan && (
+          <g transform={`translate(${W - 58}, ${H - 58})`}>
+            <CompassRose compass={compass} colors={C} />
+          </g>
+        )}
+      </svg>
     </div>
   )
 }
 
 // ─── Advantages section ────────────────────────────────────────────────────────
-function AdvantagesSection({ advantages, height }: {
+function AdvantagesSection({ advantages, height, colors: C }: {
   advantages: { id: number; icon: string; line1: string; line2: string; line3?: string }[]
   height: number
+  colors: TemplateColors
 }) {
   return (
     <div style={{
@@ -351,23 +361,30 @@ function AdvantagesSection({ advantages, height }: {
       flexDirection: 'column',
     }}>
       <div style={{
-        fontSize: '13px',
-        letterSpacing: '0.22em',
-        color: C.navy,
-        textTransform: 'uppercase',
-        fontWeight: '600',
+        display: 'flex',
+        alignItems: 'baseline',
+        gap: '14px',
         marginBottom: '14px',
         borderBottom: `1px solid ${C.bronze}`,
         paddingBottom: '10px',
       }}>
-        Ключевые преимущества
+        <span style={{
+          fontFamily: FONT_DISPLAY,
+          fontSize: '18px',
+          letterSpacing: '0.1em',
+          color: C.navy,
+          textTransform: 'uppercase',
+          fontWeight: '600',
+        }}>
+          Ключевые преимущества
+        </span>
       </div>
       <div style={{
         flex: 1,
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
         gridTemplateRows: 'repeat(2, 1fr)',
-        gap: '8px',
+        gap: '10px',
       }}>
         {advantages.map(adv => (
           <div key={adv.id} style={{
@@ -378,10 +395,10 @@ function AdvantagesSection({ advantages, height }: {
             textAlign: 'center',
             padding: '8px 6px',
             backgroundColor: C.beige,
-            borderRadius: '3px',
+            borderRadius: '4px',
           }}>
-            <AdvantageIcon name={adv.icon} size={28} color={C.bronze} />
-            <div style={{ marginTop: '6px', fontSize: '11px', color: C.navy, lineHeight: '1.35', letterSpacing: '0.02em' }}>
+            <AdvantageIcon name={adv.icon} size={30} color={C.bronze} />
+            <div style={{ marginTop: '8px', fontSize: '12px', color: C.navy, lineHeight: '1.35', letterSpacing: '0.02em', fontWeight: '500' }}>
               {adv.line1}<br />
               {adv.line2}
               {adv.line3 && <><br />{adv.line3}</>}
@@ -402,10 +419,14 @@ interface Props {
 
 const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, template }, ref) => {
   const tpl = template ?? imperialTemplate
+  const C = tpl.colors
   const area = parseArea(state.area)
   const floors = parseFloors(state.floors)
   const typeName = TYPE_DISPLAY[state.type] ?? state.type.toUpperCase()
+  // Universal calc result wins; the hardcoded legacy price grid belongs to
+  // Imperial only (v1 bug: Башни without entered price showed Imperial prices)
   const useUniversalCalc = state.offerCalcResult !== null
+  const showLegacyGrid = !useUniversalCalc && tpl.id === 'imperial'
 
   // Pixel-exact heights that sum to 1920
   const H_HEADER    = 190
@@ -426,7 +447,7 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
         width: '1080px',
         height: '1920px',
         backgroundColor: C.ivory,
-        fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        fontFamily: FONT_SANS,
         position: 'relative',
         overflow: 'hidden',
         flexShrink: 0,
@@ -442,14 +463,15 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
         justifyContent: 'space-between',
         padding: '0 56px',
         flexShrink: 0,
+        borderBottom: `2px solid ${C.bronze}`,
       }}>
         <div>
           <div style={{
-            fontFamily: 'Georgia, "Times New Roman", serif',
-            fontSize: '48px',
+            fontFamily: FONT_DISPLAY,
+            fontSize: '50px',
             color: C.white,
-            letterSpacing: '0.28em',
-            fontWeight: '400',
+            letterSpacing: '0.26em',
+            fontWeight: '500',
           }}>
             {tpl.name}
           </div>
@@ -457,25 +479,27 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
             fontSize: '12px',
             color: C.bronze,
             letterSpacing: '0.45em',
-            marginTop: '6px',
+            marginTop: '8px',
+            fontWeight: '600',
           }}>
-            {tpl.slogan.split('').join(' ')}
+            {tpl.slogan.split('').join(' ')}
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
           {displayAddress && (
-            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.65)', letterSpacing: '0.04em' }}>
               {displayAddress}
             </div>
           )}
           {state.managerComment && (
             <div style={{
-              fontFamily: 'Georgia, serif',
-              fontSize: '16px',
+              fontFamily: FONT_DISPLAY,
+              fontSize: '17px',
+              fontStyle: 'italic',
               color: C.white,
               marginTop: '10px',
               lineHeight: '1.5',
-              maxWidth: '340px',
+              maxWidth: '360px',
               textAlign: 'right',
             }}>
               {state.managerComment}
@@ -495,10 +519,11 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
         flexShrink: 0,
       }}>
         <div style={{
-          fontFamily: 'Georgia, serif',
-          fontSize: '26px',
+          fontFamily: FONT_DISPLAY,
+          fontSize: '28px',
           color: C.navy,
-          letterSpacing: '0.18em',
+          letterSpacing: '0.16em',
+          fontWeight: '500',
         }}>
           {typeName}
         </div>
@@ -515,11 +540,12 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
       }}>
         {([
           state.block ? `Блок ${state.block}` : null,
+          state.apartment ? `Кв. ${state.apartment}` : null,
           floors.length > 0 ? `Этажи ${formatFloors(floors)}` : null,
           area > 0 ? `${area.toFixed(2)} м²` : null,
           state.ceilingHeight > 0 ? `Потолки ${state.ceilingHeight.toFixed(2)} м` : null,
         ] as (string | null)[]).filter(Boolean).map((item, i, arr) => (
-          <span key={i} style={{ fontSize: '15px', color: C.navy, letterSpacing: '0.04em' }}>
+          <span key={i} style={{ fontSize: '15px', color: C.navy, letterSpacing: '0.04em', fontWeight: '500', fontVariantNumeric: 'tabular-nums' }}>
             {item}
             {i < arr.length - 1 && (
               <span style={{ color: C.bronze, margin: '0 20px' }}>|</span>
@@ -575,7 +601,7 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
           )}
         </div>
 
-        {/* Financial blocks */}
+        {/* Financial blocks — flex layout, cannot overflow the 700px section */}
         <div style={{
           width: '568px',
           height: `${H_MAIN}px`,
@@ -584,11 +610,27 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
           flexDirection: 'column',
           gap: '12px',
           flexShrink: 0,
+          overflow: 'hidden',
         }}>
-          {useUniversalCalc
-            ? <UniversalFinancialSection state={state} mainHeight={H_MAIN} />
-            : <ImperialFinancialSection pricing={pricing} mainHeight={H_MAIN} />
-          }
+          {useUniversalCalc && <UniversalFinancialSection state={state} colors={C} />}
+          {showLegacyGrid && <ImperialFinancialSection pricing={pricing} colors={C} />}
+          {!useUniversalCalc && !showLegacyGrid && (
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: `2px dashed ${C.greige}`,
+              borderRadius: '4px',
+              color: 'rgba(181,146,76,0.7)',
+              fontSize: '14px',
+              letterSpacing: '0.08em',
+              textAlign: 'center',
+              padding: '20px',
+            }}>
+              Укажите цену за м² —<br />расчёт появится автоматически
+            </div>
+          )}
         </div>
       </div>
 
@@ -605,10 +647,11 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
         rayOpacity={state.rayOpacity}
         height={H_SITEPLAN}
         compassOrientation={state.compassOrientation}
+        colors={C}
       />
 
       {/* ── ADVANTAGES ── */}
-      <AdvantagesSection advantages={tpl.advantages} height={H_ADVANTAGES} />
+      <AdvantagesSection advantages={tpl.advantages} height={H_ADVANTAGES} colors={C} />
 
       {/* ── FOOTER ── */}
       <div style={{
@@ -619,6 +662,7 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
         justifyContent: 'space-between',
         padding: '0 56px',
         flexShrink: 0,
+        borderTop: `2px solid ${C.bronze}`,
       }}>
         <div style={{
           fontSize: '11px',
@@ -626,16 +670,17 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
           lineHeight: '1.6',
           maxWidth: '520px',
         }}>
-          {tpl.disclaimer.split('\n').map((line, i) => (
-            <span key={i}>{line}{i < tpl.disclaimer.split('\n').length - 1 && <br />}</span>
+          {tpl.disclaimer.split('\n').map((line, i, arr) => (
+            <span key={i}>{line}{i < arr.length - 1 && <br />}</span>
           ))}
         </div>
         <div style={{ textAlign: 'right' }}>
           <div style={{
-            fontFamily: 'Georgia, serif',
+            fontFamily: FONT_DISPLAY,
             fontSize: '28px',
             color: C.white,
             letterSpacing: '0.22em',
+            fontWeight: '500',
           }}>
             {tpl.shortName}
           </div>
@@ -643,7 +688,8 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
             fontSize: '10px',
             color: C.bronze,
             letterSpacing: '0.35em',
-            marginTop: '4px',
+            marginTop: '5px',
+            fontWeight: '600',
           }}>
             {tpl.slogan}
           </div>

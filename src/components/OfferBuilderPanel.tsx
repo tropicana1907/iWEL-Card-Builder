@@ -2,8 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import type { AppState, ProjectPreset, CompassOrientation } from '@/types'
-import { fmt, parseArea as _parseArea, calcForward, suggestDownPayment } from '@/lib/calculator'
-const parseArea = (s: string) => typeof _parseArea === 'function' ? _parseArea(s) : (parseFloat(s.replace(',', '.')) || 0)
+import { fmt, parseArea, calcForward, suggestDownPayment } from '@/lib/calculator'
 import { APARTMENT_TYPES } from '@/config/constants'
 import { imperialTemplate } from '@/projectTemplates/imperial'
 import { towersTemplate } from '@/projectTemplates/towers'
@@ -100,7 +99,7 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
       onMsg?.('Укажите номер квартиры и площадь')
       return
     }
-    saveApartment({
+    const ok = saveApartment({
       id: `${state.projectTemplate}-b${state.block}-${state.apartment}`,
       projectId: state.projectTemplate,
       block: state.block,
@@ -119,7 +118,7 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
       lastPricePerM2: state.offerPricePerSqm || undefined,
       savedAt: Date.now(),
     })
-    onMsg?.('Квартира сохранена в библиотеку ✓')
+    onMsg?.(ok ? 'Квартира сохранена в библиотеку ✓' : 'Ошибка: хранилище браузера переполнено')
   }
 
   const handlePlanUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,9 +160,9 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
   return (
     <aside className="w-full lg:w-[380px] lg:h-full bg-white border-r border-imperial-greige flex flex-col overflow-hidden shadow-lg flex-shrink-0">
       {/* Header */}
-      <div className="bg-imperial-navy px-5 py-4 flex-shrink-0">
-        <div className="text-white font-serif text-xl tracking-[0.2em]">IWEL</div>
-        <div className="text-imperial-bronze text-xs tracking-[0.3em] mt-1 uppercase">Конструктор коммерческого предложения</div>
+      <div className="bg-imperial-navy px-5 py-4 flex-shrink-0 border-b-2 border-imperial-bronze">
+        <div className="text-white font-display text-xl tracking-[0.25em]">iWEL</div>
+        <div className="text-imperial-bronze text-xs tracking-[0.3em] mt-1 uppercase">Конструктор коммерческого предложения · 2.0</div>
       </div>
 
       {/* Scrollable body */}

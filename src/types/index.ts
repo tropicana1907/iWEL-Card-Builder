@@ -7,7 +7,6 @@ export type ApartmentType =
   | 'другое'
 
 export type RayWidth = 'NARROW' | 'MEDIUM' | 'WIDE'
-export type BlockPosition = 'start' | 'middle' | 'end' | 'custom'
 export type CalcMode = 'forward' | 'reverse'
 export type ProjectPreset = 'none' | 'imperial' | 'towers'
 
@@ -45,7 +44,6 @@ export interface AppState {
   area: string
   floors: string
   ceilingHeight: number
-  position: BlockPosition
 
   // Legacy pricing (Imperial preset)
   downPayment: number

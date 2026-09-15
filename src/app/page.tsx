@@ -5,8 +5,7 @@ import UniversalCalculator from '@/components/UniversalCalculator'
 import OfferBuilderPanel from '@/components/OfferBuilderPanel'
 import CardTemplate from '@/components/CardTemplate'
 import SitePlanEditor from '@/components/SitePlanEditor'
-import { calculatePrices, parseArea as _parseArea } from '@/lib/calculator'
-const parseArea = (s: string) => typeof _parseArea === 'function' ? _parseArea(s) : (parseFloat(s.replace(',', '.')) || 0)
+import { calculatePrices, parseArea } from '@/lib/calculator'
 import { exportToPNG, exportToJPG, exportToPDF, exportForWhatsApp, exportToClipboard } from '@/lib/export'
 import { saveState, loadState, savePlan, findPlan, saveProjectSitePlan, loadProjectSitePlan } from '@/lib/storage'
 import { getTemplate } from '@/projectTemplates'
@@ -22,7 +21,6 @@ const DEFAULT_STATE: AppState = {
   area: '',
   floors: '',
   ceilingHeight: 3.10,
-  position: 'middle',
   downPayment: 1_000_000,
   planImage: null,
   planLocked: false,
@@ -80,6 +78,7 @@ export default function HomePage() {
   const [exporting, setExporting] = useState(false)
   const [exportMsg, setExportMsg] = useState('')
   const [previewScale, setPreviewScale] = useState(0.38)
+  const [mobileScale, setMobileScale] = useState(0.34)
   const [showMobilePreview, setShowMobilePreview] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
   const previewAreaRef = useRef<HTMLDivElement>(null)
@@ -117,6 +116,9 @@ export default function HomePage() {
       const availW = previewAreaRef.current.clientWidth - 48
       const availH = previewAreaRef.current.clientHeight - 48
       setPreviewScale(Math.min(availW / 1080, availH / 1920, 0.48))
+      // Mobile fullscreen preview: fit card width to the actual screen
+      // (v1 hardcoded 0.34 — the card overflowed on narrow phones)
+      setMobileScale(Math.min((window.innerWidth - 24) / 1080, 0.4))
     }
     updateScale()
     window.addEventListener('resize', updateScale)
@@ -128,9 +130,7 @@ export default function HomePage() {
   }, [])
 
   const area = parseArea(state.area)
-  const pricing = typeof calculatePrices === 'function'
-    ? calculatePrices(area, state.type, state.downPayment)
-    : { cashPrice: 0, svoCashPrice: 0, installmentPrice: 0, svoInstallmentPrice: 0, downPayment: 0, monthlyInstallment: 0, svoMonthlyInstallment: 0, isStudio: false, hasArea: false }
+  const pricing = calculatePrices(area, state.type, state.downPayment)
   const template = getTemplate(state.projectTemplate)
 
   const buildFilename = () => {
@@ -143,7 +143,10 @@ export default function HomePage() {
   const validateForExport = (): string[] => {
     const missing: string[] = []
     if (!area) missing.push('площадь')
-    if (!state.offerPricePerSqm && !state.offerCalcResult) missing.push('цена м²')
+    // Price is required unless the Imperial legacy price grid is in use —
+    // it is the only template with official hardcoded prices on the card
+    const usingLegacyImperialGrid = !state.offerCalcResult && state.projectTemplate === 'imperial'
+    if (!state.offerCalcResult && !usingLegacyImperialGrid) missing.push('цена за м²')
     if (!state.type) missing.push('тип квартиры')
     if (!state.planImage) missing.push('планировку квартиры')
     if (!state.floors) missing.push('этаж')
@@ -191,9 +194,9 @@ export default function HomePage() {
 
   const handleSavePlanToLibrary = () => {
     if (!state.planImage || !area) return
-    savePlan({ id: `b${state.block}-${area}`, block: state.block, area, type: state.type, image: state.planImage })
-    setExportMsg('Планировка сохранена ✓')
-    setTimeout(() => setExportMsg(''), 3000)
+    const ok = savePlan({ id: `b${state.block}-${area}`, block: state.block, area, type: state.type, image: state.planImage })
+    setExportMsg(ok ? 'Планировка сохранена ✓' : 'Ошибка: хранилище браузера переполнено')
+    setTimeout(() => setExportMsg(''), 4000)
   }
 
   const handleCreateOffer = (variant: CalcVariant, calcResult: CalcResult) => {
@@ -378,10 +381,10 @@ export default function HomePage() {
 
           {/* Preview */}
           <div className="flex-1 overflow-auto flex items-start justify-center p-4" style={{ backgroundColor: '#D8D2C8' }}>
-            <div style={{ transform: 'scale(0.34)', transformOrigin: 'top center', flexShrink: 0 }}>
+            <div style={{ transform: `scale(${mobileScale})`, transformOrigin: 'top center', flexShrink: 0 }}>
               <CardTemplate state={state} pricing={pricing} template={template} />
             </div>
-            <div style={{ height: `${Math.round(1920 * 0.34)}px`, width: 0, flexShrink: 0 }} />
+            <div style={{ height: `${Math.round(1920 * mobileScale)}px`, width: 0, flexShrink: 0 }} />
           </div>
 
           {/* Export actions */}
@@ -425,6 +428,7 @@ export default function HomePage() {
           rayWidth={state.rayWidth}
           rayOpacity={state.rayOpacity}
           customSitePlan={state.customSitePlan}
+          compassOrientation={state.compassOrientation}
           onSave={(anchorX, anchorY, views, rayWidth, rayOpacity) => {
             update({
               anchorX,

@@ -15,6 +15,10 @@ const config: Config = {
         'imperial-beige': '#F0EBE3',
         'imperial-greige': '#E5DDD4',
       },
+      fontFamily: {
+        sans: ['var(--font-sans)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        display: ['var(--font-display)', 'Georgia', 'Times New Roman', 'serif'],
+      },
     },
   },
   plugins: [],

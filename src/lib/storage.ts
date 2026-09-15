@@ -4,14 +4,18 @@ const PLANS_KEY = 'imperial_plans'
 const STATE_KEY = 'imperial_state'
 const APTS_KEY = 'imperial_apartments'
 
-export function savePlan(entry: FloorplanEntry): void {
+export function savePlan(entry: FloorplanEntry): boolean {
   try {
     const plans = loadPlans()
     const idx = plans.findIndex(p => p.id === entry.id)
     if (idx >= 0) plans[idx] = entry
     else plans.push(entry)
     localStorage.setItem(PLANS_KEY, JSON.stringify(plans))
-  } catch {}
+    return true
+  } catch {
+    // localStorage quota exceeded (data-URL images are large) — report, don't lie
+    return false
+  }
 }
 
 export function loadPlans(): FloorplanEntry[] {
@@ -37,9 +41,10 @@ export function deletePlan(id: string): void {
 
 export function saveState(state: AppState): void {
   try {
-    // Exclude large data URLs from main state key
-    const { planImage: _p, customSitePlan: _c, ...rest } = state
-    void _p; void _c
+    // Exclude large data URLs and transient UI flags from the persisted state:
+    // showSitePlanEditor persisted in v1 → the modal reopened after page reload
+    const { planImage: _p, customSitePlan: _c, showSitePlanEditor: _e, ...rest } = state
+    void _p; void _c; void _e
     localStorage.setItem(STATE_KEY, JSON.stringify(rest))
   } catch {}
 }
@@ -55,6 +60,8 @@ export function loadState(): Partial<AppState> {
     if (parsed.offerPricePerSqm !== undefined) parsed.offerPricePerSqm = Number(parsed.offerPricePerSqm) || 0
     if (parsed.offerMonths !== undefined) parsed.offerMonths = Number(parsed.offerMonths) || 36
     if (parsed.downPayment !== undefined) parsed.downPayment = Number(parsed.downPayment) || 0
+    // Never restore transient UI flags (older saved states may still carry them)
+    delete parsed.showSitePlanEditor
     return parsed
   } catch {
     return {}
@@ -82,7 +89,7 @@ export function loadProjectSitePlan(projectId: string): string | null {
 
 // ── Apartment library ──────────────────────────────────────────────────────────
 
-export function saveApartment(entry: ApartmentEntry): void {
+export function saveApartment(entry: ApartmentEntry): boolean {
   try {
     const apts = loadApartments()
     const idx = apts.findIndex(a => a.id === entry.id)
@@ -95,7 +102,10 @@ export function saveApartment(entry: ApartmentEntry): void {
     if (entry.planImage) {
       localStorage.setItem(`iwel_apt_plan_${entry.id}`, entry.planImage)
     }
-  } catch {}
+    return true
+  } catch {
+    return false
+  }
 }
 
 export function loadApartments(): ApartmentEntry[] {

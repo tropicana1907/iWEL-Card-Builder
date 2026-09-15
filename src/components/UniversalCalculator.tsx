@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import type { CalcVariant, CalcResult, ApartmentType, ProjectPreset, CalcMode } from '@/types'
-import { parseArea as _parseArea, fmt, calcForward, calcReverse, suggestDownPayment, PRESET_PRICES } from '@/lib/calculator'
-const parseArea = (s: string) => typeof _parseArea === 'function' ? _parseArea(s) : (parseFloat(s.replace(',', '.')) || 0)
+import { parseArea, fmt, calcForward, calcReverse, suggestDownPayment, PRESET_PRICES } from '@/lib/calculator'
 import { APARTMENT_TYPES } from '@/config/constants'
 
 const C = {
@@ -390,11 +389,11 @@ export default function UniversalCalculator({ onCreateOffer }: Props) {
         flexShrink: 0,
       }}>
         <div>
-          <div style={{ color: 'white', fontSize: '18px', fontWeight: '700', letterSpacing: '0.15em', fontFamily: 'Georgia, serif' }}>
-            IWEL
+          <div style={{ color: 'white', fontSize: '18px', fontWeight: '700', letterSpacing: '0.2em', fontFamily: "var(--font-display), Georgia, serif" }}>
+            iWEL
           </div>
           <div style={{ color: C.bronze, fontSize: '11px', letterSpacing: '0.3em', marginTop: '2px' }}>
-            SALES CALCULATOR + OFFER BUILDER
+            БЫСТРЫЙ РАСЧЁТ · КОНСТРУКТОР КП
           </div>
         </div>
       </div>
