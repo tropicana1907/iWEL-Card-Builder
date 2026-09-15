@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback } from 'react'
 import { RAY_HALF_ANGLES } from '@/config/constants'
 import { buildSectorPath, directionRays, DEFAULT_COMPASS } from '@/lib/geometry'
+import { SITEPLAN_TEMPLATES } from '@/config/templateAssets'
 import type { RayWidth, CompassOrientation } from '@/types'
 
 const C = {
@@ -358,6 +359,27 @@ export default function SitePlanEditor({
             </button>
             <span style={{ fontSize: '12px', color: 'rgba(27,45,79,0.6)' }}>
               {customSitePlan ? 'Генплан загружен ✓' : 'PNG, JPG, SVG — заменит плейсхолдер'}
+            </span>
+            <span style={{ marginLeft: 'auto', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '11px', color: 'rgba(27,45,79,0.5)', letterSpacing: '0.06em' }}>Шаблоны:</span>
+              {SITEPLAN_TEMPLATES.map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => onUploadSitePlan(t.src)}
+                  style={{
+                    padding: '6px 12px',
+                    border: `1.5px solid ${C.bronze}`,
+                    borderRadius: '4px',
+                    backgroundColor: 'transparent',
+                    color: C.bronze,
+                    fontSize: '12px',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t.project === 'imperial' ? 'Империал' : t.project === 'towers' ? 'Башни' : t.label}
+                </button>
+              ))}
             </span>
           </div>
 

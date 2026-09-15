@@ -29,64 +29,68 @@ interface FinancialBlockProps {
   monthly?: string
   monthsLabel?: string
   accent?: boolean
-  grow?: number
+  compact?: boolean
   colors: TemplateColors
 }
 
-function FinancialBlock({ number, title, pricePerSqm, total, totalLabel = 'Стоимость', downPayment, downPaymentLabel, monthly, monthsLabel, accent = false, grow = 1, colors: C }: FinancialBlockProps) {
+function FinancialBlock({ number, title, pricePerSqm, total, totalLabel = 'Стоимость', downPayment, downPaymentLabel, monthly, monthsLabel, accent = false, compact = false, colors: C }: FinancialBlockProps) {
   const hasInstallment = !!downPayment
+  // compact — 4-block legacy grid; regular — 1-2 large blocks
+  const fz = compact
+    ? { num: 20, title: 13, ppm: 15, label: 12, total: 24, subLabel: 11, subVal: 17 }
+    : { num: 26, title: 16, ppm: 18, label: 13, total: 32, subLabel: 12, subVal: 22 }
 
   return (
     <div style={{
-      flex: `${grow} 1 0`,
       minHeight: 0,
+      minWidth: 0,
       backgroundColor: accent ? '#EEE9E1' : C.beige,
       borderRadius: '4px',
-      padding: '14px 20px',
+      padding: compact ? '12px 20px' : '18px 26px',
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
-      gap: '4px',
+      gap: compact ? '3px' : '6px',
       borderLeft: `3px solid ${C.bronze}`,
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-        <span style={{ fontFamily: FONT_DISPLAY, fontSize: '22px', fontWeight: '600', color: C.bronze, letterSpacing: '0.04em' }}>
+        <span style={{ fontFamily: FONT_DISPLAY, fontSize: `${fz.num}px`, fontWeight: '600', color: C.bronze, letterSpacing: '0.04em' }}>
           {number}
         </span>
-        <span style={{ fontSize: '12px', color: C.navy, letterSpacing: '0.14em', fontWeight: '700', textTransform: 'uppercase' }}>
+        <span style={{ fontSize: `${fz.title}px`, color: C.navy, letterSpacing: '0.12em', fontWeight: '700', textTransform: 'uppercase' }}>
           {title}
         </span>
       </div>
       {pricePerSqm && (
-        <div style={{ fontSize: '14px', color: C.bronze, letterSpacing: '0.04em', fontWeight: '600', fontVariantNumeric: 'tabular-nums' }}>
+        <div style={{ fontSize: `${fz.ppm}px`, color: C.bronze, letterSpacing: '0.04em', fontWeight: '600', fontVariantNumeric: 'tabular-nums' }}>
           {pricePerSqm}
         </div>
       )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '3px' }}>
-        <div style={{ fontSize: '11px', color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+        <div style={{ fontSize: `${fz.label}px`, color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
           {totalLabel}
         </div>
-        <div style={{ fontSize: '24px', fontWeight: '800', color: C.navy, letterSpacing: '0.01em', fontVariantNumeric: 'tabular-nums' }}>
+        <div style={{ fontSize: `${fz.total}px`, fontWeight: '800', color: C.navy, letterSpacing: '0.01em', fontVariantNumeric: 'tabular-nums' }}>
           {total}
         </div>
       </div>
       {hasInstallment && (
         <>
-          <div style={{ borderTop: `1px solid ${C.greige}`, margin: '5px 0' }} />
-          <div style={{ display: 'flex', gap: '28px' }}>
+          <div style={{ borderTop: `1px solid ${C.greige}`, margin: compact ? '4px 0' : '7px 0' }} />
+          <div style={{ display: 'flex', gap: '32px' }}>
             <div>
-              <div style={{ fontSize: '10px', color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <div style={{ fontSize: `${fz.subLabel}px`, color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 {downPaymentLabel ?? 'Первоначальный взнос'}
               </div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: C.navy, fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
+              <div style={{ fontSize: `${fz.subVal}px`, fontWeight: '700', color: C.navy, fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
                 {downPayment}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '10px', color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <div style={{ fontSize: `${fz.subLabel}px`, color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 {monthsLabel ?? 'Ежемесячно ≈'}
               </div>
-              <div style={{ fontSize: '16px', fontWeight: '700', color: C.bronze, fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
+              <div style={{ fontSize: `${fz.subVal}px`, fontWeight: '700', color: C.bronze, fontVariantNumeric: 'tabular-nums', marginTop: '2px' }}>
                 {monthly}
               </div>
             </div>
@@ -109,18 +113,22 @@ function UniversalFinancialSection({ state, colors }: { state: AppState; colors:
 
   if (isStudio) {
     return (
-      <FinancialBlock
-        number="01"
-        title="СТОИМОСТЬ"
-        pricePerSqm={ppm > 0 ? `${ppm.toLocaleString('ru-RU')} ₽/м²` : ''}
-        total={fmt(calc.totalPrice)}
-        colors={colors}
-      />
+      <div style={{ height: '100%', display: 'flex', justifyContent: 'center' }}>
+        <div style={{ width: '70%', display: 'flex', flexDirection: 'column' }}>
+          <FinancialBlock
+            number="01"
+            title="СТОИМОСТЬ"
+            pricePerSqm={ppm > 0 ? `${ppm.toLocaleString('ru-RU')} ₽/м²` : ''}
+            total={fmt(calc.totalPrice)}
+            colors={colors}
+          />
+        </div>
+      </div>
     )
   }
 
   return (
-    <>
+    <div style={{ height: '100%', display: 'grid', gridTemplateColumns: '1fr 1.15fr', gap: '14px' }}>
       <FinancialBlock
         number="01"
         title="ПОЛНАЯ СТОИМОСТЬ"
@@ -139,10 +147,9 @@ function UniversalFinancialSection({ state, colors }: { state: AppState; colors:
         monthly={fmt(calc.monthlyPayment)}
         monthsLabel="Ежемесячный платёж ≈"
         accent
-        grow={1.4}
         colors={colors}
       />
-    </>
+    </div>
   )
 }
 
@@ -152,7 +159,7 @@ function ImperialFinancialSection({ pricing, colors }: { pricing: PricingResult;
 
   if (isStudio) {
     return (
-      <>
+      <div style={{ height: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
         <FinancialBlock
           number="01"
           title="100% ОПЛАТА"
@@ -168,17 +175,28 @@ function ImperialFinancialSection({ pricing, colors }: { pricing: PricingResult;
           accent
           colors={colors}
         />
-      </>
+      </div>
     )
   }
 
+  // 2 columns: cash on top, installment below (regular | СВО)
   return (
-    <>
+    <div style={{ height: '100%', display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1.55fr', gap: '12px' }}>
       <FinancialBlock
         number="01"
         title="100% ОПЛАТА"
         pricePerSqm="85 000 ₽/м²"
         total={fmt(pricing.cashPrice)}
+        compact
+        colors={colors}
+      />
+      <FinancialBlock
+        number="03"
+        title="СВО — 100% ОПЛАТА"
+        pricePerSqm="80 000 ₽/м²"
+        total={fmt(pricing.svoCashPrice)}
+        accent
+        compact
         colors={colors}
       />
       <FinancialBlock
@@ -190,15 +208,7 @@ function ImperialFinancialSection({ pricing, colors }: { pricing: PricingResult;
         downPayment={fmt(pricing.downPayment)}
         monthly={fmt(pricing.monthlyInstallment)}
         monthsLabel="Ежемесячный платёж ≈"
-        grow={1.35}
-        colors={colors}
-      />
-      <FinancialBlock
-        number="03"
-        title="СВО — 100% ОПЛАТА"
-        pricePerSqm="80 000 ₽/м²"
-        total={fmt(pricing.svoCashPrice)}
-        accent
+        compact
         colors={colors}
       />
       <FinancialBlock
@@ -211,10 +221,10 @@ function ImperialFinancialSection({ pricing, colors }: { pricing: PricingResult;
         monthly={fmt(pricing.svoMonthlyInstallment)}
         monthsLabel="Ежемесячный платёж ≈"
         accent
-        grow={1.35}
+        compact
         colors={colors}
       />
-    </>
+    </div>
   )
 }
 
@@ -370,7 +380,7 @@ function AdvantagesSection({ advantages, height, colors: C }: {
       }}>
         <span style={{
           fontFamily: FONT_DISPLAY,
-          fontSize: '18px',
+          fontSize: '21px',
           letterSpacing: '0.1em',
           color: C.navy,
           textTransform: 'uppercase',
@@ -397,8 +407,8 @@ function AdvantagesSection({ advantages, height, colors: C }: {
             backgroundColor: C.beige,
             borderRadius: '4px',
           }}>
-            <AdvantageIcon name={adv.icon} size={30} color={C.bronze} />
-            <div style={{ marginTop: '8px', fontSize: '12px', color: C.navy, lineHeight: '1.35', letterSpacing: '0.02em', fontWeight: '500' }}>
+            <AdvantageIcon name={adv.icon} size={32} color={C.bronze} />
+            <div style={{ marginTop: '8px', fontSize: '14px', color: C.navy, lineHeight: '1.3', letterSpacing: '0.01em', fontWeight: '500' }}>
               {adv.line1}<br />
               {adv.line2}
               {adv.line3 && <><br />{adv.line3}</>}
@@ -429,14 +439,16 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
   const showLegacyGrid = !useUniversalCalc && tpl.id === 'imperial'
 
   // Pixel-exact heights that sum to 1920
-  const H_HEADER    = 190
-  const H_TITLE     = 68
-  const H_INFO      = 48
-  const H_MAIN      = 700
-  const H_SITEPLAN  = 400
-  const H_ADVANTAGES = 374
-  const H_FOOTER    = 140
+  const H_HEADER    = 170
+  const H_TITLE     = 70
+  const H_INFO      = 54
+  const H_MAIN      = 776   // floorplan (70% width) on top + financial below
+  const H_SITEPLAN  = 400   // keep 2.7:1 — must match the editor aspect ratio
+  const H_ADVANTAGES = 330
+  const H_FOOTER    = 120
   // total = 1920 ✓
+  const H_FLOORPLAN = 452
+  const FLOORPLAN_W = 756   // 70% of 1080 — owner's spec
 
   const displayAddress = state.address || tpl.address
 
@@ -487,19 +499,19 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
         </div>
         <div style={{ textAlign: 'right' }}>
           {displayAddress && (
-            <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.65)', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '16px', color: 'rgba(255,255,255,0.7)', letterSpacing: '0.04em' }}>
               {displayAddress}
             </div>
           )}
           {state.managerComment && (
             <div style={{
               fontFamily: FONT_DISPLAY,
-              fontSize: '17px',
+              fontSize: '20px',
               fontStyle: 'italic',
               color: C.white,
               marginTop: '10px',
-              lineHeight: '1.5',
-              maxWidth: '360px',
+              lineHeight: '1.45',
+              maxWidth: '400px',
               textAlign: 'right',
             }}>
               {state.managerComment}
@@ -520,9 +532,9 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
       }}>
         <div style={{
           fontFamily: FONT_DISPLAY,
-          fontSize: '28px',
+          fontSize: '34px',
           color: C.navy,
-          letterSpacing: '0.16em',
+          letterSpacing: '0.14em',
           fontWeight: '500',
         }}>
           {typeName}
@@ -545,85 +557,87 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
           area > 0 ? `${area.toFixed(2)} м²` : null,
           state.ceilingHeight > 0 ? `Потолки ${state.ceilingHeight.toFixed(2)} м` : null,
         ] as (string | null)[]).filter(Boolean).map((item, i, arr) => (
-          <span key={i} style={{ fontSize: '15px', color: C.navy, letterSpacing: '0.04em', fontWeight: '500', fontVariantNumeric: 'tabular-nums' }}>
+          <span key={i} style={{ fontSize: '19px', color: C.navy, letterSpacing: '0.04em', fontWeight: '600', fontVariantNumeric: 'tabular-nums' }}>
             {item}
             {i < arr.length - 1 && (
-              <span style={{ color: C.bronze, margin: '0 20px' }}>|</span>
+              <span style={{ color: C.bronze, margin: '0 18px', fontWeight: '400' }}>|</span>
             )}
           </span>
         ))}
       </div>
 
-      {/* ── MAIN: floorplan + financial ── */}
-      <div style={{ height: `${H_MAIN}px`, display: 'flex', flexShrink: 0 }}>
-        {/* Floorplan — pixel perfect, object-fit: contain, never crop */}
+      {/* ── MAIN: floorplan (70% width) on top, financial below ── */}
+      <div style={{ height: `${H_MAIN}px`, display: 'flex', flexDirection: 'column', flexShrink: 0, overflow: 'hidden' }}>
+        {/* Floorplan — 70% of the card width, object-fit: contain, never crop */}
         <div style={{
-          width: '512px',
-          height: `${H_MAIN}px`,
+          height: `${H_FLOORPLAN}px`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '24px',
-          borderRight: `1px solid ${C.greige}`,
+          padding: '20px 0 6px',
           flexShrink: 0,
         }}>
-          {state.planImage ? (
-            <img
-              src={state.planImage}
-              alt="Планировка"
-              style={{
-                maxWidth: '100%',
-                maxHeight: '100%',
-                objectFit: 'contain',
-                display: 'block',
-              }}
-            />
-          ) : (
-            <div style={{
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: `2px dashed ${C.greige}`,
-              borderRadius: '4px',
-              color: C.bronze,
-              gap: '12px',
-            }}>
-              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke={C.bronze} strokeWidth="1">
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                <polyline points="9,22 9,12 15,12 15,22" />
-              </svg>
-              <div style={{ fontSize: '13px', letterSpacing: '0.15em', color: C.bronze }}>ПЛАНИРОВКА</div>
-              <div style={{ fontSize: '11px', color: 'rgba(181,146,76,0.6)', letterSpacing: '0.06em' }}>Загрузите планировку квартиры</div>
-            </div>
-          )}
+          <div style={{
+            width: `${FLOORPLAN_W}px`,
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            {state.planImage ? (
+              <img
+                src={state.planImage}
+                alt="Планировка"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain',
+                  display: 'block',
+                }}
+              />
+            ) : (
+              <div style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: `2px dashed ${C.greige}`,
+                borderRadius: '4px',
+                color: C.bronze,
+                gap: '12px',
+              }}>
+                <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke={C.bronze} strokeWidth="1">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9,22 9,12 15,12 15,22" />
+                </svg>
+                <div style={{ fontSize: '16px', letterSpacing: '0.15em', color: C.bronze }}>ПЛАНИРОВКА</div>
+                <div style={{ fontSize: '13px', color: 'rgba(181,146,76,0.6)', letterSpacing: '0.06em' }}>Загрузите планировку квартиры</div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Financial blocks — flex layout, cannot overflow the 700px section */}
+        {/* Financial blocks */}
         <div style={{
-          width: '568px',
-          height: `${H_MAIN}px`,
-          padding: '20px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '12px',
-          flexShrink: 0,
+          flex: 1,
+          minHeight: 0,
+          padding: '12px 40px 20px',
           overflow: 'hidden',
         }}>
           {useUniversalCalc && <UniversalFinancialSection state={state} colors={C} />}
           {showLegacyGrid && <ImperialFinancialSection pricing={pricing} colors={C} />}
           {!useUniversalCalc && !showLegacyGrid && (
             <div style={{
-              flex: 1,
+              height: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               border: `2px dashed ${C.greige}`,
               borderRadius: '4px',
               color: 'rgba(181,146,76,0.7)',
-              fontSize: '14px',
+              fontSize: '16px',
               letterSpacing: '0.08em',
               textAlign: 'center',
               padding: '20px',
@@ -665,10 +679,10 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
         borderTop: `2px solid ${C.bronze}`,
       }}>
         <div style={{
-          fontSize: '11px',
-          color: 'rgba(255,255,255,0.45)',
-          lineHeight: '1.6',
-          maxWidth: '520px',
+          fontSize: '13px',
+          color: 'rgba(255,255,255,0.5)',
+          lineHeight: '1.55',
+          maxWidth: '560px',
         }}>
           {tpl.disclaimer.split('\n').map((line, i, arr) => (
             <span key={i}>{line}{i < arr.length - 1 && <br />}</span>

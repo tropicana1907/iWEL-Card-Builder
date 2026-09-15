@@ -7,6 +7,7 @@ import { APARTMENT_TYPES } from '@/config/constants'
 import { imperialTemplate } from '@/projectTemplates/imperial'
 import { towersTemplate } from '@/projectTemplates/towers'
 import { saveApartment, loadApartments, loadApartmentWithPlan, loadProjectSitePlan } from '@/lib/storage'
+import { SITEPLAN_TEMPLATES, FLOORPLAN_TEMPLATES, templatesForProject } from '@/config/templateAssets'
 import type { ApartmentEntry } from '@/types'
 
 const fmtNum = (n: number) =>
@@ -65,6 +66,10 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
   // Apartment library picker
   const [showAptPicker, setShowAptPicker] = useState(false)
   const [savedApts, setSavedApts] = useState<ApartmentEntry[]>([])
+
+  // Bundled template pickers
+  const [showPlanTemplates, setShowPlanTemplates] = useState(false)
+  const [showSitePlanTemplates, setShowSitePlanTemplates] = useState(false)
 
   const handleOpenAptPicker = () => {
     const all = loadApartments()
@@ -458,6 +463,42 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
           onChange={handlePlanUpload}
         />
 
+        {/* Bundled floorplan templates */}
+        <button
+          onClick={() => setShowPlanTemplates(v => !v)}
+          className="w-full py-2.5 border border-imperial-bronze rounded text-xs text-imperial-bronze hover:bg-imperial-beige transition-colors font-semibold tracking-wide mb-3"
+        >
+          🖼 ШАБЛОННЫЕ ПЛАНИРОВКИ
+        </button>
+
+        {showPlanTemplates && (
+          <div className="mb-3 border border-imperial-greige rounded overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 bg-imperial-ivory border-b border-imperial-greige">
+              <span className="text-xs font-semibold text-imperial-navy uppercase tracking-wide">Планировки проектов</span>
+              <button onClick={() => setShowPlanTemplates(false)} className="text-gray-400 hover:text-imperial-navy text-base leading-none">×</button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 p-2 max-h-72 overflow-y-auto">
+              {templatesForProject(FLOORPLAN_TEMPLATES, state.projectTemplate).map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    onChange({ planImage: t.src, planLocked: false })
+                    setShowPlanTemplates(false)
+                    onMsg?.(`Планировка «${t.label}» выбрана ✓`)
+                  }}
+                  className="border border-imperial-greige rounded overflow-hidden hover:border-imperial-bronze transition-colors bg-imperial-ivory"
+                >
+                  <div className="h-24 flex items-center justify-center p-1 bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={t.src} alt={t.label} className="max-w-full max-h-full object-contain" loading="lazy" />
+                  </div>
+                  <div className="text-[10px] text-imperial-navy px-1.5 py-1 text-left truncate">{t.label}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {state.planImage ? (
           <div className="mb-3">
             <div className="relative border border-imperial-greige rounded overflow-hidden bg-imperial-ivory h-40 flex items-center justify-center mb-2">
@@ -512,6 +553,42 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
             <img src={state.customSitePlan} alt="Генплан" className="max-w-full max-h-full object-contain" />
             <div className="absolute bottom-1 right-1 text-xs text-gray-400 bg-white bg-opacity-80 px-1.5 py-0.5 rounded">
               {state.projectTemplate !== 'none' ? state.projectTemplate.toUpperCase() : 'генплан'}
+            </div>
+          </div>
+        )}
+
+        {/* Bundled site plan templates */}
+        <button
+          onClick={() => setShowSitePlanTemplates(v => !v)}
+          className="w-full py-2.5 border border-imperial-bronze rounded text-xs text-imperial-bronze hover:bg-imperial-beige transition-colors font-semibold tracking-wide mb-2"
+        >
+          🗺 ГЕНПЛАНЫ ПРОЕКТОВ
+        </button>
+
+        {showSitePlanTemplates && (
+          <div className="mb-3 border border-imperial-greige rounded overflow-hidden">
+            <div className="flex items-center justify-between px-3 py-2 bg-imperial-ivory border-b border-imperial-greige">
+              <span className="text-xs font-semibold text-imperial-navy uppercase tracking-wide">Генпланы проектов</span>
+              <button onClick={() => setShowSitePlanTemplates(false)} className="text-gray-400 hover:text-imperial-navy text-base leading-none">×</button>
+            </div>
+            <div className="flex flex-col gap-2 p-2">
+              {templatesForProject(SITEPLAN_TEMPLATES, state.projectTemplate).map(t => (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    onChange({ customSitePlan: t.src })
+                    setShowSitePlanTemplates(false)
+                    onMsg?.(`Генплан «${t.label}» выбран ✓`)
+                  }}
+                  className="border border-imperial-greige rounded overflow-hidden hover:border-imperial-bronze transition-colors bg-imperial-ivory text-left"
+                >
+                  <div className="h-24 flex items-center justify-center bg-white">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={t.src} alt={t.label} className="max-w-full max-h-full object-contain" loading="lazy" />
+                  </div>
+                  <div className="text-xs text-imperial-navy px-2 py-1.5">{t.label}</div>
+                </button>
+              ))}
             </div>
           </div>
         )}
