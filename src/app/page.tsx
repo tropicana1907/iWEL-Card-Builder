@@ -9,6 +9,7 @@ import { calculatePrices, parseArea } from '@/lib/calculator'
 import { exportToPNG, exportToJPG, exportToPDF, exportForWhatsApp, exportToClipboard } from '@/lib/export'
 import { saveState, loadState, savePlan, findPlan, saveProjectSitePlan, loadProjectSitePlan } from '@/lib/storage'
 import { getTemplate } from '@/projectTemplates'
+import { CARD_WIDTH, CARD_HEIGHT } from '@/config/card'
 import type { AppState, CalcVariant, CalcResult } from '@/types'
 import { imperialTemplate } from '@/projectTemplates/imperial'
 
@@ -115,10 +116,10 @@ export default function HomePage() {
       if (!previewAreaRef.current) return
       const availW = previewAreaRef.current.clientWidth - 48
       const availH = previewAreaRef.current.clientHeight - 48
-      setPreviewScale(Math.min(availW / 1080, availH / 1920, 0.48))
+      setPreviewScale(Math.min(availW / CARD_WIDTH, availH / CARD_HEIGHT, 0.48))
       // Mobile fullscreen preview: fit card width to the actual screen
       // (v1 hardcoded 0.34 — the card overflowed on narrow phones)
-      setMobileScale(Math.min((window.innerWidth - 24) / 1080, 0.4))
+      setMobileScale(Math.min((window.innerWidth - 24) / CARD_WIDTH, 0.4))
     }
     updateScale()
     window.addEventListener('resize', updateScale)
@@ -346,7 +347,7 @@ export default function HomePage() {
                 template={template}
               />
             </div>
-            <div style={{ height: `${Math.round(1920 * previewScale)}px`, width: 0, flexShrink: 0 }} />
+            <div style={{ height: `${Math.round(CARD_HEIGHT * previewScale)}px`, width: 0, flexShrink: 0 }} />
           </div>
         </div>
       </div>
@@ -384,7 +385,7 @@ export default function HomePage() {
             <div style={{ transform: `scale(${mobileScale})`, transformOrigin: 'top center', flexShrink: 0 }}>
               <CardTemplate state={state} pricing={pricing} template={template} />
             </div>
-            <div style={{ height: `${Math.round(1920 * mobileScale)}px`, width: 0, flexShrink: 0 }} />
+            <div style={{ height: `${Math.round(CARD_HEIGHT * mobileScale)}px`, width: 0, flexShrink: 0 }} />
           </div>
 
           {/* Export actions */}

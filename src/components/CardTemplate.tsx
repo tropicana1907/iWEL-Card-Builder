@@ -2,6 +2,7 @@
 
 import { forwardRef } from 'react'
 import type { AppState, PricingResult } from '@/types'
+import { CARD_WIDTH, CARD_HEIGHT } from '@/config/card'
 import { RAY_HALF_ANGLES, TYPE_DISPLAY } from '@/config/constants'
 import { buildSectorPath, directionRays, DEFAULT_COMPASS } from '@/lib/geometry'
 import { AdvantageIcon } from './Icons'
@@ -315,6 +316,16 @@ function SitePlanSection(props: SitePlanProps) {
         </div>
       )}
 
+      {/* Subtle navy vignette over the site plan — blends it into the card */}
+      {customSitePlan && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          background: 'linear-gradient(180deg, rgba(27,45,79,0.20) 0%, rgba(27,45,79,0) 24%, rgba(27,45,79,0) 70%, rgba(27,45,79,0.26) 100%)',
+        }} />
+      )}
+
       <svg
         style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
         width={W}
@@ -397,8 +408,8 @@ function AdvantagesSection({ advantages, height, colors: C }: {
             backgroundColor: C.beige,
             borderRadius: '4px',
           }}>
-            <AdvantageIcon name={adv.icon} size={36} color={C.bronze} />
-            <div style={{ marginTop: '8px', fontSize: '17px', color: C.navy, lineHeight: '1.25', letterSpacing: '0.01em', fontWeight: '500' }}>
+            <AdvantageIcon name={adv.icon} size={40} color={C.bronze} />
+            <div style={{ marginTop: '10px', fontSize: '20px', color: C.navy, lineHeight: '1.28', letterSpacing: '0.01em', fontWeight: '500' }}>
               {adv.line1}<br />
               {adv.line2}
               {adv.line3 && <><br />{adv.line3}</>}
@@ -428,15 +439,15 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
   const useUniversalCalc = state.offerCalcResult !== null
   const showLegacyGrid = !useUniversalCalc && tpl.id === 'imperial'
 
-  // Pixel-exact heights that sum to 1920
+  // Pixel-exact heights that sum to CARD_HEIGHT (2000)
   const H_HEADER    = 160
   const H_TITLE     = 76
   const H_INFO      = 60
   const H_MAIN      = 814   // floorplan (70% width) on top + financial below
   const H_SITEPLAN  = 400   // keep 2.7:1 — must match the editor aspect ratio
-  const H_ADVANTAGES = 300
+  const H_ADVANTAGES = 440
   const H_FOOTER    = 110
-  // total = 1920 ✓
+  // total = 2060 ✓ (CARD_HEIGHT)
   const H_FLOORPLAN = 440
   const FLOORPLAN_W = 756   // 70% of 1080 — owner's spec
 
@@ -446,8 +457,8 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
     <div
       ref={ref}
       style={{
-        width: '1080px',
-        height: '1920px',
+        width: `${CARD_WIDTH}px`,
+        height: `${CARD_HEIGHT}px`,
         backgroundColor: C.ivory,
         fontFamily: FONT_SANS,
         position: 'relative',

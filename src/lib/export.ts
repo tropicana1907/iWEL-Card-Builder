@@ -1,10 +1,11 @@
 import { toPng, toJpeg } from 'html-to-image'
 import jsPDF from 'jspdf'
+import { CARD_WIDTH, CARD_HEIGHT } from '@/config/card'
 
 export async function exportToPNG(el: HTMLElement, filename: string): Promise<void> {
   const dataUrl = await toPng(el, {
-    width: 1080,
-    height: 1920,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     pixelRatio: 1,
     skipAutoScale: true,
     style: { transform: 'none' },
@@ -14,8 +15,8 @@ export async function exportToPNG(el: HTMLElement, filename: string): Promise<vo
 
 export async function exportToJPG(el: HTMLElement, filename: string): Promise<void> {
   const dataUrl = await toJpeg(el, {
-    width: 1080,
-    height: 1920,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     pixelRatio: 1,
     skipAutoScale: true,
     quality: 0.95,
@@ -26,21 +27,21 @@ export async function exportToJPG(el: HTMLElement, filename: string): Promise<vo
 
 export async function exportToPDF(el: HTMLElement, filename: string): Promise<void> {
   const dataUrl = await toPng(el, {
-    width: 1080,
-    height: 1920,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     pixelRatio: 1,
     skipAutoScale: true,
     style: { transform: 'none' },
   })
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [1080, 1920] })
-  pdf.addImage(dataUrl, 'PNG', 0, 0, 1080, 1920)
+  const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [CARD_WIDTH, CARD_HEIGHT] })
+  pdf.addImage(dataUrl, 'PNG', 0, 0, CARD_WIDTH, CARD_HEIGHT)
   pdf.save(`${filename}.pdf`)
 }
 
 export async function exportToClipboard(el: HTMLElement, filename: string): Promise<'copied' | 'fallback'> {
   const dataUrl = await toPng(el, {
-    width: 1080,
-    height: 1920,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     pixelRatio: 1,
     skipAutoScale: true,
     style: { transform: 'none' },
@@ -58,8 +59,8 @@ export async function exportToClipboard(el: HTMLElement, filename: string): Prom
 
 export async function exportForWhatsApp(el: HTMLElement, filename: string): Promise<void> {
   const dataUrl = await toJpeg(el, {
-    width: 1080,
-    height: 1920,
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
     pixelRatio: 1,
     skipAutoScale: true,
     quality: 0.88,
