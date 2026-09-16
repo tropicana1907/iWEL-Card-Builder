@@ -73,6 +73,34 @@ const TOWERS: ProjectData = {
   ],
 }
 
+const AZUR_PRIME: ProjectData = {
+  project: 'AZUR PRIME',
+  sections: [
+    {
+      title: 'Студии',
+      tag: 'Первый взнос 30%',
+      rows: [
+        { label: 'СТАНДАРТ', sub: 'Все клиенты', installment: '180 000', full: '150 000', term: '24 мес' },
+        { label: 'СВО', sub: 'Скидка −5 000 ₽/м²', isSvo: true, installment: '175 000', full: '145 000', term: '24 мес' },
+      ],
+    },
+  ],
+}
+
+const AZUR_RESIDENCE: ProjectData = {
+  project: 'AZUR Residence',
+  sections: [
+    {
+      title: 'Студии',
+      tag: 'Первый взнос 30%',
+      rows: [
+        { label: 'СТАНДАРТ', sub: 'Все клиенты', installment: '180 000', full: '150 000', term: '24 мес' },
+        { label: 'СВО', sub: 'Скидка −5 000 ₽/м²', isSvo: true, installment: '175 000', full: '145 000', term: '24 мес' },
+      ],
+    },
+  ],
+}
+
 const IMPERIAL: ProjectData = {
   project: 'ИМПЕРИАЛ',
   sections: [
@@ -292,6 +320,8 @@ export default function PricingConditions() {
       <div style={{ maxWidth: 680, margin: '0 auto' }}>
         <ProjectBlock data={TOWERS} />
         <ProjectBlock data={IMPERIAL} />
+        <ProjectBlock data={AZUR_PRIME} />
+        <ProjectBlock data={AZUR_RESIDENCE} />
         <p style={{
           textAlign: 'right',
           fontSize: 11,
