@@ -1,11 +1,11 @@
 import type { ProjectTemplate } from './types'
 
-export const towersTemplate: ProjectTemplate = {
-  id: 'towers',
-  name: 'TOWERS',
-  shortName: 'TOWERS',
-  slogan: 'ВЫСОТА НОВОГО УРОВНЯ',
-  address: 'Линейная улица, 5',
+export const azurPrimeTemplate: ProjectTemplate = {
+  id: 'azur-prime',
+  name: 'AZUR PRIME',
+  shortName: 'AZUR PRIME',
+  slogan: 'ЖИЗНЬ НА ВЫСШЕМ УРОВНЕ',
+  address: '',
   disclaimer:
     'Площади указаны по проектной документации. Итоговые параметры могут незначительно отличаться. Предложение не является публичной офертой.',
   compassOrientation: {
@@ -22,7 +22,7 @@ export const towersTemplate: ProjectTemplate = {
     greige: '#E5DDD4',
     white: '#FFFFFF',
   },
-  defaultCeilingHeight: 3.30,
+  defaultCeilingHeight: 3.00,
   advantages: [
     { id: 1, icon: 'location', line1: 'Удобное', line2: 'расположение', line3: '' },
     { id: 2, icon: 'building', line1: 'Монолитная', line2: 'технология', line3: 'строительства' },

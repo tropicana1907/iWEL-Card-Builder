@@ -8,7 +8,7 @@ export type ApartmentType =
 
 export type RayWidth = 'NARROW' | 'MEDIUM' | 'WIDE'
 export type CalcMode = 'forward' | 'reverse'
-export type ProjectPreset = 'none' | 'imperial' | 'towers'
+export type ProjectPreset = 'none' | 'imperial' | 'towers' | 'azur-prime' | 'azur-residence'
 
 export interface CompassOrientation {
   northAngle: number

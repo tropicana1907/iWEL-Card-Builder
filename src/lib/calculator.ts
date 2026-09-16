@@ -10,6 +10,8 @@ export const PRESET_PRICES: Record<ProjectPreset, { label: string; pricePerSqm: 
   none: { label: 'Свой', pricePerSqm: 0, maxMonths: 60 },
   imperial: { label: 'Империал', pricePerSqm: 115_000, maxMonths: 36 },
   towers: { label: 'Towers', pricePerSqm: 105_000, maxMonths: 36 },
+  'azur-prime': { label: 'AZUR Prime', pricePerSqm: 180_000, maxMonths: 24 },
+  'azur-residence': { label: 'AZUR Residence', pricePerSqm: 180_000, maxMonths: 24 },
 }
 
 export function calcForward(area: number, pricePerSqm: number, downPayment: number, months: number): CalcResult {

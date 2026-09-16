@@ -127,7 +127,7 @@ function VariantCard({
       <div>
         <span style={labelStyle}>Проект</span>
         <div style={{ display: 'flex', gap: '6px' }}>
-          {(['none', 'imperial', 'towers'] as ProjectPreset[]).map(p => (
+          {(['imperial', 'towers', 'azur-prime', 'azur-residence'] as ProjectPreset[]).map(p => (
             <button
               key={p}
               onClick={() => onChange(applyPreset(variant, p))}

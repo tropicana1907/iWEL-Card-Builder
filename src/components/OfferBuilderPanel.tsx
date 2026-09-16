@@ -6,6 +6,8 @@ import { fmt, parseArea, calcForward, suggestDownPayment } from '@/lib/calculato
 import { APARTMENT_TYPES } from '@/config/constants'
 import { imperialTemplate } from '@/projectTemplates/imperial'
 import { towersTemplate } from '@/projectTemplates/towers'
+import { azurPrimeTemplate } from '@/projectTemplates/azurPrime'
+import { azurResidenceTemplate } from '@/projectTemplates/azurResidence'
 import { saveApartment, loadApartments, loadApartmentWithPlan, loadProjectSitePlan } from '@/lib/storage'
 import { SITEPLAN_TEMPLATES, FLOORPLAN_TEMPLATES, FLOORPLAN_TABS, templatesForProject } from '@/config/templateAssets'
 import type { ApartmentEntry } from '@/types'
@@ -184,15 +186,22 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
             {([
               { v: 'imperial' as ProjectPreset, l: 'Империал' },
               { v: 'towers' as ProjectPreset, l: 'Towers' },
-              { v: 'none' as ProjectPreset, l: 'Свой' },
+              { v: 'azur-prime' as ProjectPreset, l: 'AZUR Prime' },
+              { v: 'azur-residence' as ProjectPreset, l: 'AZUR Residence' },
             ]).map(({ v, l }) => (
               <button
                 key={v}
                 disabled={locked}
                 onClick={() => {
                   if (locked) return
-                  const tpl = v === 'imperial' ? imperialTemplate : v === 'towers' ? towersTemplate : null
-                  const savedSitePlan = v !== 'none' ? loadProjectSitePlan(v) : null
+                  const tplMap: Record<string, typeof imperialTemplate | null> = {
+                    imperial: imperialTemplate,
+                    towers: towersTemplate,
+                    'azur-prime': azurPrimeTemplate,
+                    'azur-residence': azurResidenceTemplate,
+                  }
+                  const tpl = tplMap[v] ?? null
+                  const savedSitePlan = loadProjectSitePlan(v)
                   onChange({
                     projectTemplate: v,
                     address: tpl?.address ?? state.address,
