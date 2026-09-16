@@ -301,6 +301,9 @@ function VariantCard({
           </div>
           <ResultRow label="Полная стоимость" value={fmt(result.totalPrice)} bold />
           {!isStudio && (
+            <ResultRow label="Рекомендованный ПВ (30%)" value={fmt(Math.round(result.totalPrice * 0.3))} highlight />
+          )}
+          {!isStudio && (
             <>
               {variant.mode === 'forward' ? (
                 <>
