@@ -77,7 +77,7 @@ const AZUR_PRIME: ProjectData = {
   project: 'AZUR PRIME',
   sections: [
     {
-      title: 'Студии',
+      title: '',
       tag: 'Первый взнос 30%',
       rows: [
         { label: 'СТАНДАРТ', sub: 'Все клиенты', installment: '180 000', full: '150 000', term: '24 мес' },
@@ -91,7 +91,7 @@ const AZUR_RESIDENCE: ProjectData = {
   project: 'AZUR Residence',
   sections: [
     {
-      title: 'Студии',
+      title: '',
       tag: 'Первый взнос 30%',
       rows: [
         { label: 'СТАНДАРТ', sub: 'Все клиенты', installment: '180 000', full: '150 000', term: '24 мес' },
