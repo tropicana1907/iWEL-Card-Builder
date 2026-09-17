@@ -384,6 +384,29 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
         {/* ── РАСЧЁТ ── */}
         <Divider label="Расчёт" />
 
+        {/* Payment mode toggle */}
+        <div className="mb-3">
+          <Label>Тип оплаты</Label>
+          <div className="flex rounded overflow-hidden border border-imperial-greige">
+            {([
+              { v: 'installment' as const, l: 'Рассрочка' },
+              { v: 'full' as const, l: '100% Оплата' },
+            ]).map(({ v, l }) => (
+              <button
+                key={v}
+                onClick={() => onChange({ offerPaymentMode: v })}
+                className={`flex-1 py-2 text-xs font-semibold transition-colors
+                  ${state.offerPaymentMode === v
+                    ? 'bg-imperial-navy text-white'
+                    : 'bg-transparent text-imperial-navy hover:bg-imperial-ivory'
+                  }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Price per m² — always the primary input */}
         <div className="mb-3">
           <Label>Цена за м²</Label>
@@ -409,7 +432,15 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
               <span className="text-sm font-bold text-imperial-navy">{fmt(liveCalc.totalPrice)}</span>
             </div>
 
-            {state.type !== 'Студия' && (
+            {/* Recommended 30% DP — shown for installment + non-studio */}
+            {state.offerPaymentMode === 'installment' && state.type !== 'Студия' && (
+              <div className="flex justify-between items-baseline">
+                <span className="text-xs font-semibold text-imperial-bronze">Рекомендуемый ПВ (30%)</span>
+                <span className="text-sm font-bold text-imperial-bronze">{fmt(Math.round(liveCalc.totalPrice * 0.3))}</span>
+              </div>
+            )}
+
+            {state.offerPaymentMode === 'installment' && state.type !== 'Студия' && (
               <>
                 {/* DP input */}
                 <div>
@@ -447,8 +478,8 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
           </div>
         )}
 
-        {/* Months — visible when price entered and not studio */}
-        {liveCalc && state.type !== 'Студия' && (
+        {/* Months — only for installment mode */}
+        {liveCalc && state.offerPaymentMode === 'installment' && state.type !== 'Студия' && (
           <div className="mb-3">
             <Label>Срок рассрочки, мес</Label>
             <input

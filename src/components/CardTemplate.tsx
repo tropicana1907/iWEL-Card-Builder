@@ -115,14 +115,17 @@ function UniversalFinancialSection({ state, colors }: { state: AppState; colors:
 
   if (!calc) return null
 
-  if (isStudio) {
+  const isFull = state.offerPaymentMode === 'full'
+
+  if (isStudio || isFull) {
     return (
       <div style={{ height: '100%', display: 'flex', justifyContent: 'center' }}>
-        <div style={{ width: '70%', display: 'grid' }}>
+        <div style={{ width: isStudio ? '70%' : '80%', display: 'grid' }}>
           <FinancialBlock
             title="СТОИМОСТЬ"
             pricePerSqm={ppm > 0 ? `${ppm.toLocaleString('ru-RU')} ₽/м²` : ''}
             total={fmt(calc.totalPrice)}
+            totalLabel={isFull ? '100% ОПЛАТА' : 'Стоимость'}
             colors={C}
           />
         </div>

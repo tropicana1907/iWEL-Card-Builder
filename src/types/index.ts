@@ -73,6 +73,7 @@ export interface AppState {
   offerPricePerSqm: number
   offerMonths: number
   offerCalcMode: CalcMode
+  offerPaymentMode: 'full' | 'installment'
   compassOrientation: CompassOrientation | null
 }
 

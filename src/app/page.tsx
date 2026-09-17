@@ -44,6 +44,7 @@ const DEFAULT_STATE: AppState = {
   offerPricePerSqm: 0,
   offerMonths: 36,
   offerCalcMode: 'forward',
+  offerPaymentMode: 'installment',
   compassOrientation: imperialTemplate.compassOrientation,
 }
 
