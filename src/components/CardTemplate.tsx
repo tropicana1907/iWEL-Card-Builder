@@ -20,7 +20,7 @@ const FONT_SANS = "var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe U
 
 // ─── Financial block ──────────────────────────────────────────────────────────
 interface FinancialBlockProps {
-  number: string
+  number?: string
   title: string
   pricePerSqm: string
   total: string
@@ -55,9 +55,11 @@ function FinancialBlock({ number, title, pricePerSqm, total, totalLabel = 'Ст�
       borderLeft: `3px solid ${C.bronze}`,
     }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
-        <span style={{ fontFamily: FONT_DISPLAY, fontSize: `${fz.num}px`, fontWeight: '600', color: C.bronze, letterSpacing: '0.04em' }}>
-          {number}
-        </span>
+        {number && (
+          <span style={{ fontFamily: FONT_DISPLAY, fontSize: `${fz.num}px`, fontWeight: '600', color: C.bronze, letterSpacing: '0.04em' }}>
+            {number}
+          </span>
+        )}
         <span style={{ fontSize: `${fz.title}px`, color: C.navy, letterSpacing: '0.12em', fontWeight: '700', textTransform: 'uppercase' }}>
           {title}
         </span>
@@ -109,6 +111,7 @@ function UniversalFinancialSection({ state, colors }: { state: AppState; colors:
   const isReverse = state.offerCalcMode === 'reverse'
   const months = state.offerMonths || 36
   const ppm = state.offerPricePerSqm
+  const C = colors
 
   if (!calc) return null
 
@@ -117,11 +120,10 @@ function UniversalFinancialSection({ state, colors }: { state: AppState; colors:
       <div style={{ height: '100%', display: 'flex', justifyContent: 'center' }}>
         <div style={{ width: '70%', display: 'grid' }}>
           <FinancialBlock
-            number="01"
             title="СТОИМОСТЬ"
             pricePerSqm={ppm > 0 ? `${ppm.toLocaleString('ru-RU')} ₽/м²` : ''}
             total={fmt(calc.totalPrice)}
-            colors={colors}
+            colors={C}
           />
         </div>
       </div>
@@ -130,26 +132,69 @@ function UniversalFinancialSection({ state, colors }: { state: AppState; colors:
 
   return (
     <div style={{ height: '100%', display: 'grid', gridTemplateColumns: '1fr 1.15fr', gap: '14px' }}>
+      {/* Left: стоимость */}
       <FinancialBlock
-        number="01"
-        title="ПОЛНАЯ СТОИМОСТЬ"
+        title="СТОИМОСТЬ"
         pricePerSqm={ppm > 0 ? `${ppm.toLocaleString('ru-RU')} ₽/м²` : ''}
         total={fmt(calc.totalPrice)}
-        colors={colors}
+        colors={C}
       />
-      <FinancialBlock
-        number="02"
-        title={`РАССРОЧКА ${months} МЕС`}
-        pricePerSqm={isReverse ? 'рассчитан необходимый взнос' : ''}
-        total={fmt(calc.remainingBalance)}
-        totalLabel="Остаток"
-        downPayment={fmt(calc.requiredDownPayment)}
-        downPaymentLabel={isReverse ? 'Необходимый взнос' : 'Первоначальный взнос'}
-        monthly={fmt(calc.monthlyPayment)}
-        monthsLabel="Ежемесячный платёж ≈"
-        accent
-        colors={colors}
-      />
+
+      {/* Right: рассрочка — новый макет */}
+      <div style={{
+        minHeight: 0,
+        minWidth: 0,
+        backgroundColor: '#EEE9E1',
+        borderRadius: '4px',
+        padding: '20px 32px',
+        display: 'flex',
+        flexDirection: 'column',
+        borderLeft: `3px solid ${C.bronze}`,
+      }}>
+        {/* Title */}
+        <div style={{ marginBottom: '12px' }}>
+          <div style={{ fontSize: '22px', color: C.navy, letterSpacing: '0.14em', fontWeight: '800', textTransform: 'uppercase' }}>
+            РАССРОЧКА
+          </div>
+          <div style={{ fontSize: '17px', color: C.bronze, letterSpacing: '0.08em', fontWeight: '600', marginTop: '2px' }}>
+            НА {months} МЕС
+          </div>
+        </div>
+
+        <div style={{ borderTop: `1px solid ${C.greige}`, marginBottom: '10px' }} />
+
+        {/* Big monthly payment — centered */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+          <div style={{ fontSize: '15px', color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>
+            Ежемесячный платёж ≈
+          </div>
+          <div style={{ fontSize: '54px', fontWeight: '800', color: C.bronze, letterSpacing: '0.01em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
+            {fmt(calc.monthlyPayment)}
+          </div>
+        </div>
+
+        <div style={{ borderTop: `1px solid ${C.greige}`, marginTop: '10px', marginBottom: '10px' }} />
+
+        {/* ПВ + остаток — small, side by side */}
+        <div style={{ display: 'flex', gap: '28px' }}>
+          <div>
+            <div style={{ fontSize: '13px', color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              {isReverse ? 'Необходимый взнос' : 'Первоначальный взнос'}
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: C.navy, fontVariantNumeric: 'tabular-nums', marginTop: '3px' }}>
+              {fmt(calc.requiredDownPayment)}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontSize: '13px', color: 'rgba(27,45,79,0.55)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Остаток
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: '700', color: C.navy, fontVariantNumeric: 'tabular-nums', marginTop: '3px' }}>
+              {fmt(calc.remainingBalance)}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

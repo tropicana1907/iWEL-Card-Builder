@@ -14,6 +14,13 @@ const C = {
   green: '#22863a',
 }
 
+const PRICING_HINT: Record<string, string> = {
+  imperial: 'Стандарт до 70 м²: рассрочка 110 · 100% 90 тыс ₽/м²\nСтандарт от 70 м²: рассрочка 105 · 100% 90 тыс ₽/м²\nСВО до 70 м²: рассрочка 105 · 100% 85 тыс ₽/м²\nСВО от 70 м²: рассрочка 95 · 100% 85 тыс ₽/м²',
+  towers: 'Блок 1–3 (до 16 эт), 44 м²: рассрочка 115 · 100% 110 тыс · 12 мес\nБлок 1–3 (до 16 эт), от 60 м²: рассрочка 115 · 100% 110 тыс · 24 мес\n16 этаж, 44 м²: рассрочка 110 · 100% 95 тыс · 12 мес\n16 этаж, 70 м²: рассрочка 110 · 100% 95 тыс · 24 мес\nБлок 5, от 86 м²: рассрочка 105 · 100% 95 тыс · 36 мес',
+  'azur-prime': 'Рассрочка 180 тыс ₽/м² · 100% оплата 150 тыс ₽/м²\nПервый взнос 30% · Срок 24 мес\nСВО: рассрочка 175 · 100% 145 тыс ₽/м²',
+  'azur-residence': 'Рассрочка 180 тыс ₽/м² · 100% оплата 150 тыс ₽/м²\nПервый взнос 30% · Срок 24 мес\nСВО: рассрочка 175 · 100% 145 тыс ₽/м²',
+}
+
 function makeVariant(id: string): CalcVariant {
   return {
     id,
@@ -68,9 +75,6 @@ function VariantCard({
       ? calcForward(area, pricePerSqm, downPayment, months)
       : calcReverse(area, pricePerSqm, desiredMonthly, months)
     : null
-
-  const areaNum = parseArea(variant.area)
-  const suggestedDp = areaNum > 0 ? suggestDownPayment(areaNum) : null
 
   const set = (fields: Partial<CalcVariant>) => onChange({ ...variant, ...fields })
 
@@ -143,6 +147,22 @@ function VariantCard({
             </button>
           ))}
         </div>
+        {/* Inline pricing hint for selected project */}
+        {variant.preset !== 'none' && PRICING_HINT[variant.preset] && (
+          <div style={{
+            marginTop: '7px',
+            padding: '7px 10px',
+            background: '#F0EBE3',
+            borderRadius: '6px',
+            fontSize: '11px',
+            color: '#6B7A91',
+            lineHeight: '1.55',
+            letterSpacing: '0.01em',
+            whiteSpace: 'pre-line',
+          }}>
+            {PRICING_HINT[variant.preset]}
+          </div>
+        )}
       </div>
 
       {/* Тип квартиры */}
@@ -238,14 +258,6 @@ function VariantCard({
                 onChange={e => set({ downPayment: e.target.value })}
                 placeholder="1 000 000"
               />
-              {suggestedDp && variant.downPayment !== String(suggestedDp) && (
-                <div
-                  style={{ fontSize: '10px', color: C.bronze, marginTop: '3px', cursor: 'pointer' }}
-                  onClick={() => set({ downPayment: String(suggestedDp) })}
-                >
-                  Рекомендуется: {fmt(suggestedDp)}
-                </div>
-              )}
             </div>
             <div>
               <span style={labelStyle}>Срок, мес</span>
