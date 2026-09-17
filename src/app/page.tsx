@@ -16,6 +16,77 @@ import { imperialTemplate } from '@/projectTemplates/imperial'
 
 type AppMode = 'offer' | 'calculator' | 'conditions'
 
+// ── Pricing reference panel (cheat-sheet visible next to card on desktop) ──────
+const REF_DATA: Record<string, { title: string; tag?: string; rows: { label: string; r: string; f: string; t: string; svo?: boolean }[] }[]> = {
+  imperial: [{ title: 'ИМПЕРИАЛ', tag: 'ПВ 30%', rows: [
+    { label: 'Стандарт ≤70 м²', r: '110', f: '90', t: '24 мес' },
+    { label: 'Стандарт ≥70 м²', r: '105', f: '90', t: '36 мес' },
+    { label: 'СВО ≤70 м²', svo: true, r: '105', f: '85', t: '24 мес' },
+    { label: 'СВО ≥70 м²', svo: true, r: '95', f: '85', t: '36 мес' },
+  ]}],
+  towers: [
+      { label: '44 м²', r: '115', f: '110', t: '12 мес' },
+      { label: '≥60 м²', r: '115', f: '110', t: '24 мес' },
+      { label: '44 м² · СВО', svo: true, r: '110', f: '105', t: '12 мес' },
+      { label: '≥60 м² · СВО', svo: true, r: '110', f: '105', t: '24 мес' },
+    ]},
+    { title: '16 этаж', rows: [
+      { label: '44 м²', r: '110', f: '95', t: '12 мес' },
+      { label: '70 м²', r: '110', f: '95', t: '24 мес' },
+      { label: '44 м² · СВО', svo: true, r: '105', f: '90', t: '12 мес' },
+      { label: '70 м² · СВО', svo: true, r: '105', f: '90', t: '24 мес' },
+    ]},
+    { title: 'Блок 5 (≥86 м²)', rows: [
+      { label: 'Стандарт', r: '105', f: '95', t: '36 мес' },
+      { label: 'СВО', svo: true, r: '95', f: '90', t: '36 мес' },
+    ]},
+  ],
+  'azur-prime': [{ title: 'AZUR PRIME', tag: 'ПВ 30% · 24 мес', rows: [
+    { label: 'Стандарт', r: '180', f: '150', t: '24 мес' },
+    { label: 'СВО', svo: true, r: '175', f: '145', t: '24 мес' },
+  ]}],
+  'azur-residence': [{ title: 'AZUR Residence', tag: 'ПВ 30% · 24 мес', rows: [
+    { label: 'Стандарт', r: '180', f: '150', t: '24 мес' },
+    { label: 'СВО', svo: true, r: '175', f: '145', t: '24 мес' },
+  ]}],
+}
+
+function PricingRefPanel({ project }: { project: string }) {
+  const sections = REF_DATA[project] ?? REF_DATA['imperial']
+  return (
+    <div style={{ width: 228, background: 'white', borderRadius: 8, border: '1px solid #E5DDD4', overflow: 'hidden', fontSize: 11, boxShadow: '0 2px 16px rgba(27,45,79,0.12)' }}>
+      <div style={{ background: '#1B2D4F', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ color: '#B5924C', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Шпаргалка · Условия</span>
+        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 9 }}>тыс ₽/м²</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 32px 32px 42px', background: '#F0EBE3', padding: '3px 10px', gap: 2, borderBottom: '1px solid #E5DDD4' }}>
+        {['Категория', 'Р', '100%', 'Срок'].map((h, i) => (
+          <span key={i} style={{ color: '#6B7A91', fontWeight: 700, fontSize: 9, letterSpacing: '0.04em', textTransform: 'uppercase', textAlign: i > 0 ? 'right' : 'left' }}>{h}</span>
+        ))}
+      </div>
+      {sections.map((sec, si) => (
+        <div key={si}>
+          <div style={{ background: '#1B2D4F', padding: '4px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: 'white', fontWeight: 700, fontSize: 10 }}>{sec.title}</span>
+            {sec.tag && <span style={{ color: '#B5924C', fontSize: 9 }}>{sec.tag}</span>}
+          </div>
+          {sec.rows.map((row, ri) => (
+            <div key={ri} style={{ display: 'grid', gridTemplateColumns: '1fr 32px 32px 42px', padding: '5px 10px', gap: 2, background: row.svo ? '#FDF6EC' : (ri % 2 === 0 ? 'white' : '#FAF8F3'), borderTop: '1px solid #E5DDD4' }}>
+              <span style={{ color: row.svo ? '#B5924C' : '#1B2D4F', fontWeight: row.svo ? 600 : 400, fontSize: 10.5 }}>{row.label}</span>
+              <span style={{ color: '#1B2D4F', fontWeight: 700, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{row.r}</span>
+              <span style={{ color: '#1B2D4F', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>{row.f}</span>
+              <span style={{ color: '#6B7A91', textAlign: 'right' }}>{row.t}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+      <div style={{ padding: '5px 10px', background: '#F0EBE3', borderTop: '1px solid #E5DDD4', fontSize: 9.5, color: '#B5924C', fontWeight: 600 }}>
+        Р = Рассрочка · 100% = Полная оплата
+      </div>
+    </div>
+  )
+}
+
 const DEFAULT_STATE: AppState = {
   block: 5,
   apartment: '',
@@ -364,7 +435,7 @@ export default function HomePage() {
           {/* Preview area — desktop always visible; mobile accessible via CTA button */}
           <div
             ref={previewAreaRef}
-            className="h-[760px] lg:flex-1 lg:h-auto overflow-hidden lg:overflow-auto flex items-start justify-center p-6"
+            className="h-[760px] lg:flex-1 lg:h-auto overflow-hidden lg:overflow-auto flex items-start justify-center p-6 relative"
             style={{ backgroundColor: '#D8D2C8' }}
           >
             <div style={{
@@ -380,6 +451,12 @@ export default function HomePage() {
               />
             </div>
             <div style={{ height: `${Math.round(CARD_HEIGHT * previewScale)}px`, width: 0, flexShrink: 0 }} />
+            {/* Pricing cheat-sheet panel — visible on xl+ when offer mode and project selected */}
+            {mode === 'offer' && state.projectTemplate !== 'none' && (
+              <div className="hidden xl:block absolute right-4 top-4">
+                <PricingRefPanel project={state.projectTemplate} />
+              </div>
+            )}
           </div>
         </div>
       </div>

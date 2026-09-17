@@ -222,6 +222,29 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
           </div>
         </div>
 
+        {/* Payment mode toggle — here so it's visible without scrolling */}
+        <div className="mb-4">
+          <Label>Тип оплаты</Label>
+          <div className="flex rounded overflow-hidden border-2 border-imperial-navy">
+            {([
+              { v: 'installment' as const, l: 'Рассрочка' },
+              { v: 'full' as const, l: '100% Оплата' },
+            ]).map(({ v, l }) => (
+              <button
+                key={v}
+                onClick={() => onChange({ offerPaymentMode: v })}
+                className={`flex-1 py-2 text-xs font-bold transition-colors tracking-wide uppercase
+                  ${state.offerPaymentMode === v
+                    ? 'bg-imperial-navy text-white'
+                    : 'bg-transparent text-imperial-navy hover:bg-imperial-ivory'
+                  }`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="mb-3">
           <Label>Адрес проекта</Label>
           <input
@@ -383,29 +406,6 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
 
         {/* ── РАСЧЁТ ── */}
         <Divider label="Расчёт" />
-
-        {/* Payment mode toggle */}
-        <div className="mb-3">
-          <Label>Тип оплаты</Label>
-          <div className="flex rounded overflow-hidden border border-imperial-greige">
-            {([
-              { v: 'installment' as const, l: 'Рассрочка' },
-              { v: 'full' as const, l: '100% Оплата' },
-            ]).map(({ v, l }) => (
-              <button
-                key={v}
-                onClick={() => onChange({ offerPaymentMode: v })}
-                className={`flex-1 py-2 text-xs font-semibold transition-colors
-                  ${state.offerPaymentMode === v
-                    ? 'bg-imperial-navy text-white'
-                    : 'bg-transparent text-imperial-navy hover:bg-imperial-ivory'
-                  }`}
-              >
-                {l}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Price per m² — always the primary input */}
         <div className="mb-3">
