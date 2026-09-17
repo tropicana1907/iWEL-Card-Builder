@@ -25,6 +25,7 @@ const REF_DATA: Record<string, { title: string; tag?: string; rows: { label: str
     { label: 'СВО ≥70 м²', svo: true, r: '95', f: '85', t: '36 мес' },
   ]}],
   towers: [
+    { title: 'Блоки 1–3 (до 16 эт)', tag: 'ПВ 30%', rows: [
       { label: '44 м²', r: '115', f: '110', t: '12 мес' },
       { label: '≥60 м²', r: '115', f: '110', t: '24 мес' },
       { label: '44 м² · СВО', svo: true, r: '110', f: '105', t: '12 мес' },
