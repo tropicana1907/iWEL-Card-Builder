@@ -35,7 +35,22 @@ export async function exportToPDF(el: HTMLElement, filename: string): Promise<vo
   })
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'px', format: [CARD_WIDTH, CARD_HEIGHT] })
   pdf.addImage(dataUrl, 'PNG', 0, 0, CARD_WIDTH, CARD_HEIGHT)
-  pdf.save(`${filename}.pdf`)
+
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+  if (isMobile) {
+    // Safari / Chrome mobile: blob URL opens in system PDF viewer
+    const blob = pdf.output('blob')
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.target = '_blank'
+    a.rel = 'noopener'
+    a.download = `${filename}.pdf`
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 60_000)
+  } else {
+    pdf.save(`${filename}.pdf`)
+  }
 }
 
 export async function exportToClipboard(el: HTMLElement, filename: string): Promise<'copied' | 'fallback'> {

@@ -15,7 +15,7 @@ const C = {
 }
 
 const PRICING_HINT: Record<string, string> = {
-  imperial: 'Стандарт до 70 м²: рассрочка 110 · 100% 90 тыс ₽/м²\nСтандарт от 70 м²: рассрочка 105 · 100% 90 тыс ₽/м²\nСВО до 70 м²: рассрочка 105 · 100% 85 тыс ₽/м²\nСВО от 70 м²: рассрочка 95 · 100% 85 тыс ₽/м²',
+  imperial: 'Стандарт до 70 м²: рассрочка 110 · 100% 90 тыс ₽/м²\nСтандарт от 70 м²: рассрочка 105 · 100% 90 тыс ₽/м²\nСВО до 70 м²: рассрочка 105 · 100% 85 тыс ₽/м²\nСВО от 70 м²: рассрочка 95 · 100% 85 тыс ₽/м²\nТерраса: +5 000 ₽/м² к цене',
   towers: 'Блок 1–3 (до 16 эт), 44 м²: рассрочка 115 · 100% 110 тыс · 12 мес\nБлок 1–3 (до 16 эт), от 60 м²: рассрочка 115 · 100% 110 тыс · 24 мес\n16 этаж, 44 м²: рассрочка 110 · 100% 95 тыс · 12 мес\n16 этаж, 70 м²: рассрочка 110 · 100% 95 тыс · 24 мес\nБлок 5, от 86 м²: рассрочка 105 · 100% 95 тыс · 36 мес',
   'azur-prime': 'Рассрочка 180 тыс ₽/м² · 100% оплата 150 тыс ₽/м²\nПервый взнос 30% · Срок 24 мес\nСВО: рассрочка 175 · 100% 145 тыс ₽/м²',
   'azur-residence': 'Рассрочка 180 тыс ₽/м² · 100% оплата 150 тыс ₽/м²\nПервый взнос 30% · Срок 24 мес\nСВО: рассрочка 175 · 100% 145 тыс ₽/м²',
@@ -32,6 +32,7 @@ function makeVariant(id: string): CalcVariant {
     mode: 'forward',
     desiredMonthly: '',
     preset: 'none',
+    hasTerrace: false,
   }
 }
 
@@ -69,11 +70,14 @@ function VariantCard({
   const months = parseInt(variant.months, 10) || 36
   const desiredMonthly = parseFloat(variant.desiredMonthly) || 0
   const isStudio = variant.type === 'Студия'
+  // Imperial terrace surcharge: +5 000 ₽/m²
+  const terraceSurcharge = variant.preset === 'imperial' && variant.hasTerrace ? 5_000 : 0
+  const effectivePpm = pricePerSqm + terraceSurcharge
 
   const result = area > 0 && pricePerSqm > 0
     ? variant.mode === 'forward'
-      ? calcForward(area, pricePerSqm, downPayment, months)
-      : calcReverse(area, pricePerSqm, desiredMonthly, months)
+      ? calcForward(area, effectivePpm, downPayment, months)
+      : calcReverse(area, effectivePpm, desiredMonthly, months)
     : null
 
   const set = (fields: Partial<CalcVariant>) => onChange({ ...variant, ...fields })
@@ -162,6 +166,39 @@ function VariantCard({
           }}>
             {PRICING_HINT[variant.preset]}
           </div>
+        )}
+
+        {/* Terrace toggle — Imperial only */}
+        {variant.preset === 'imperial' && (
+          <button
+            onClick={() => set({ hasTerrace: !variant.hasTerrace })}
+            style={{
+              marginTop: '7px',
+              width: '100%',
+              padding: '7px 10px',
+              borderRadius: '6px',
+              border: `1.5px solid ${variant.hasTerrace ? C.bronze : C.greige}`,
+              backgroundColor: variant.hasTerrace ? C.bronze : 'transparent',
+              color: variant.hasTerrace ? 'white' : C.navy,
+              fontSize: '11px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              textAlign: 'left',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '7px',
+            }}
+          >
+            <span style={{
+              width: '14px', height: '14px', borderRadius: '3px', flexShrink: 0,
+              border: `2px solid ${variant.hasTerrace ? 'rgba(255,255,255,0.8)' : C.greige}`,
+              backgroundColor: variant.hasTerrace ? 'white' : 'transparent',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {variant.hasTerrace && <span style={{ color: C.bronze, fontSize: '10px', fontWeight: '900', lineHeight: 1 }}>✓</span>}
+            </span>
+            Терраса (+5 000 ₽/м²)
+          </button>
         )}
       </div>
 
@@ -311,6 +348,11 @@ function VariantCard({
           <div style={{ fontSize: '11px', fontWeight: '700', color: C.navy, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>
             Результат
           </div>
+          {terraceSurcharge > 0 && (
+            <div style={{ fontSize: '11px', color: C.bronze, fontWeight: '600', marginBottom: '8px', padding: '5px 8px', background: '#FDF6EC', borderRadius: '5px', border: `1px solid ${C.bronze}40` }}>
+              {pricePerSqm.toLocaleString('ru-RU')} + {terraceSurcharge.toLocaleString('ru-RU')} (терраса) = {effectivePpm.toLocaleString('ru-RU')} ₽/м²
+            </div>
+          )}
           <ResultRow label="Полная стоимость" value={fmt(result.totalPrice)} bold />
           {!isStudio && (
             <ResultRow label="Рекомендованный ПВ (30%)" value={fmt(Math.round(result.totalPrice * 0.3))} highlight />
@@ -389,36 +431,17 @@ export default function UniversalCalculator({ onCreateOffer }: Props) {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      minHeight: '100%',
       backgroundColor: '#F0EBE3',
       display: 'flex',
       flexDirection: 'column',
     }}>
-      {/* Header */}
-      <div style={{
-        backgroundColor: C.navy,
-        padding: '16px 32px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexShrink: 0,
-      }}>
-        <div>
-          <div style={{ color: 'white', fontSize: '18px', fontWeight: '700', letterSpacing: '0.2em', fontFamily: "var(--font-display), Georgia, serif" }}>
-            iWEL
-          </div>
-          <div style={{ color: C.bronze, fontSize: '11px', letterSpacing: '0.3em', marginTop: '2px' }}>
-            БЫСТРЫЙ РАСЧЁТ · КОНСТРУКТОР КП
-          </div>
-        </div>
-      </div>
-
-      {/* Variants area */}
+      {/* Variants area — scrolls on mobile, horizontal on desktop */}
       <div style={{
         flex: 1,
         overflowX: 'auto',
-        overflowY: 'auto',
         padding: 'clamp(14px, 4vw, 32px)',
+        paddingBottom: 'max(clamp(14px, 4vw, 32px), env(safe-area-inset-bottom, 14px))',
         display: 'flex',
         gap: '20px',
         alignItems: 'flex-start',

@@ -27,6 +27,7 @@ export interface CalcVariant {
   mode: CalcMode
   desiredMonthly: string
   preset: ProjectPreset
+  hasTerrace: boolean
 }
 
 export interface CalcResult {
@@ -74,6 +75,7 @@ export interface AppState {
   offerMonths: number
   offerCalcMode: CalcMode
   offerPaymentMode: 'full' | 'installment'
+  hasTerrace: boolean
   compassOrientation: CompassOrientation | null
 }
 

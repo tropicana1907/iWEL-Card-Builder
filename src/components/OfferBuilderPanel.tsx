@@ -57,7 +57,10 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
   const pricePerSqm = state.offerPricePerSqm || 0
   const months = state.offerMonths || 36
   const dp = state.downPayment
-  const liveCalc = area > 0 && pricePerSqm > 0 ? calcForward(area, pricePerSqm, dp, months) : null
+  // Imperial terrace surcharge: +5 000 ₽/m² when hasTerrace is set
+  const terraceSurcharge = state.projectTemplate === 'imperial' && state.hasTerrace ? 5_000 : 0
+  const effectivePpm = pricePerSqm + terraceSurcharge
+  const liveCalc = area > 0 && pricePerSqm > 0 ? calcForward(area, effectivePpm, dp, months) : null
 
   // Local state for formatted DP input
   const [dpInputStr, setDpInputStr] = useState(() => fmtNum(state.downPayment))
@@ -150,19 +153,20 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
     setDpInputStr(rawValue)
     const newDP = parseFloat(rawValue.replace(/[\s ]/g, '')) || 0
     if (newDP < 0 || isNaN(newDP)) return
-    const calc = syncCalc(area, pricePerSqm, newDP, months)
+    const calc = syncCalc(area, effectivePpm, newDP, months)
     onChange({ downPayment: newDP, offerCalcResult: calc })
   }
 
   const handlePriceChange = (rawValue: string) => {
     const p = parseFloat(rawValue.replace(/[\s ]/g, '')) || 0
-    const calc = syncCalc(area, p, dp, months)
+    const terrace = state.projectTemplate === 'imperial' && state.hasTerrace ? 5_000 : 0
+    const calc = syncCalc(area, p + terrace, dp, months)
     onChange({ offerPricePerSqm: p, offerCalcResult: calc })
   }
 
   const handleMonthsChange = (value: string) => {
     const m = parseInt(value, 10) || 36
-    const calc = syncCalc(area, pricePerSqm, dp, m)
+    const calc = syncCalc(area, effectivePpm, dp, m)
     onChange({ offerMonths: m, offerCalcResult: calc })
   }
 
@@ -360,6 +364,31 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
           </div>
         </div>
 
+        {/* Terrace surcharge — Imperial only */}
+        {state.projectTemplate === 'imperial' && (
+          <div className="mb-3">
+            <button
+              onClick={() => {
+                const newHasTerrace = !state.hasTerrace
+                const newSurcharge = state.projectTemplate === 'imperial' && newHasTerrace ? 5_000 : 0
+                const newEffPpm = pricePerSqm + newSurcharge
+                const newCalc = area > 0 && pricePerSqm > 0 ? calcForward(area, newEffPpm, dp, months) : null
+                onChange({ hasTerrace: newHasTerrace, offerCalcResult: newCalc })
+              }}
+              className={`flex items-center gap-2 w-full py-2 px-3 rounded border text-xs font-semibold transition-colors
+                ${state.hasTerrace
+                  ? 'bg-imperial-bronze text-white border-imperial-bronze'
+                  : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
+                }`}
+            >
+              <span className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${state.hasTerrace ? 'bg-white border-white' : 'border-imperial-greige'}`}>
+                {state.hasTerrace && <span className="text-imperial-bronze text-xs font-bold">✓</span>}
+              </span>
+              Терраса (+5 000 ₽/м²)
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
             <Label>Площадь, м²</Label>
@@ -371,7 +400,7 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
                 const newArea = parseArea(e.target.value)
                 const isDpDefault = dp === 0 || dp === 1_000_000 || dp === 2_500_000
                 const newDp = isDpDefault ? suggestDownPayment(newArea) : dp
-                const calc = newArea > 0 && pricePerSqm > 0 ? calcForward(newArea, pricePerSqm, newDp, months) : null
+                const calc = newArea > 0 && pricePerSqm > 0 ? calcForward(newArea, effectivePpm, newDp, months) : null
                 onChange({ area: e.target.value, downPayment: newDp, offerCalcResult: calc })
               }}
               placeholder="82.88"
@@ -426,6 +455,12 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
         {/* Live results block */}
         {liveCalc && (
           <div className="bg-imperial-ivory rounded-md p-3 border border-imperial-greige mb-3 space-y-2">
+            {/* Terrace surcharge note */}
+            {terraceSurcharge > 0 && (
+              <div className="text-xs text-imperial-bronze font-semibold bg-amber-50 border border-amber-200 rounded px-2 py-1">
+                +{terraceSurcharge.toLocaleString('ru-RU')} ₽/м² (терраса) → итого {effectivePpm.toLocaleString('ru-RU')} ₽/м²
+              </div>
+            )}
             {/* Total price */}
             <div className="flex justify-between items-baseline">
               <span className="text-xs text-gray-500">Полная стоимость</span>

@@ -19,10 +19,10 @@ type AppMode = 'offer' | 'calculator' | 'conditions'
 // ── Pricing reference panel (cheat-sheet visible next to card on desktop) ──────
 const REF_DATA: Record<string, { title: string; tag?: string; rows: { label: string; r: string; f: string; t: string; svo?: boolean }[] }[]> = {
   imperial: [{ title: 'ИМПЕРИАЛ', tag: 'ПВ 30%', rows: [
-    { label: 'Стандарт ≤70 м²', r: '110', f: '90', t: '24 мес' },
-    { label: 'Стандарт ≥70 м²', r: '105', f: '90', t: '36 мес' },
-    { label: 'СВО ≤70 м²', svo: true, r: '105', f: '85', t: '24 мес' },
-    { label: 'СВО ≥70 м²', svo: true, r: '95', f: '85', t: '36 мес' },
+    { label: 'Стандарт до 70 м²', r: '110', f: '90', t: '24 мес' },
+    { label: 'Стандарт от 70 м²', r: '105', f: '90', t: '36 мес' },
+    { label: 'СВО до 70 м²', svo: true, r: '105', f: '85', t: '24 мес' },
+    { label: 'СВО от 70 м²', svo: true, r: '95', f: '85', t: '36 мес' },
   ]}],
   towers: [
     { title: 'Блоки 1–3 (до 16 эт)', tag: 'ПВ 30%', rows: [
@@ -117,6 +117,7 @@ const DEFAULT_STATE: AppState = {
   offerMonths: 36,
   offerCalcMode: 'forward',
   offerPaymentMode: 'installment',
+  hasTerrace: false,
   compassOrientation: imperialTemplate.compassOrientation,
 }
 
@@ -330,7 +331,7 @@ export default function HomePage() {
   // ── CALCULATOR MODE ──
   if (mode === 'calculator') {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', minHeight: '-webkit-fill-available' }}>
         <div style={{
           backgroundColor: 'white',
           borderBottom: '1px solid #E5DDD4',
@@ -342,7 +343,7 @@ export default function HomePage() {
         }}>
           <TabBar mode={mode} onModeChange={setMode} />
         </div>
-        <div style={{ flex: 1, overflow: 'hidden' }}>
+        <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
           <UniversalCalculator onCreateOffer={handleCreateOffer} />
         </div>
       </div>

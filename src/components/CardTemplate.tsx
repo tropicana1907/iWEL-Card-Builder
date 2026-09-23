@@ -110,7 +110,8 @@ function UniversalFinancialSection({ state, colors }: { state: AppState; colors:
   const isStudio = state.type === 'Студия'
   const isReverse = state.offerCalcMode === 'reverse'
   const months = state.offerMonths || 36
-  const ppm = state.offerPricePerSqm
+  const terraceSurcharge = state.projectTemplate === 'imperial' && state.hasTerrace ? 5_000 : 0
+  const ppm = state.offerPricePerSqm + terraceSurcharge
   const C = colors
 
   if (!calc) return null
