@@ -537,15 +537,6 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
           }}>
             {tpl.name}
           </div>
-          <div style={{
-            fontSize: '14px',
-            color: C.bronze,
-            letterSpacing: '0.42em',
-            marginTop: '8px',
-            fontWeight: '600',
-          }}>
-            {tpl.slogan.split('').join(' ')}
-          </div>
         </div>
         <div style={{ textAlign: 'right' }}>
           {displayAddress && (
@@ -747,15 +738,6 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
             fontWeight: '500',
           }}>
             {tpl.shortName}
-          </div>
-          <div style={{
-            fontSize: '12px',
-            color: C.bronze,
-            letterSpacing: '0.32em',
-            marginTop: '5px',
-            fontWeight: '600',
-          }}>
-            {tpl.slogan}
           </div>
         </div>
       </div>
