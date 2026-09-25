@@ -594,7 +594,7 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
         {([
           state.block ? `Блок ${state.block}` : null,
           state.apartment ? `Кв. ${state.apartment}` : null,
-          floors.length > 0 ? `Этажи ${formatFloors(floors)}` : null,
+          floors.length > 0 ? `${floors.length === 1 ? 'Этаж' : 'Этажи'} ${formatFloors(floors)}` : null,
           area > 0 ? `${area.toFixed(2)} м²` : null,
           state.ceilingHeight > 0 ? `Потолки ${state.ceilingHeight.toFixed(2)} м` : null,
         ] as (string | null)[]).filter(Boolean).map((item, i, arr) => (
