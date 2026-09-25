@@ -6,6 +6,7 @@ import OfferBuilderPanel from '@/components/OfferBuilderPanel'
 import CardTemplate from '@/components/CardTemplate'
 import SitePlanEditor from '@/components/SitePlanEditor'
 import PricingConditions from '@/components/PricingConditions'
+import PrepaymentCalculator from '@/components/PrepaymentCalculator'
 import { calculatePrices, parseArea } from '@/lib/calculator'
 import { exportToPNG, exportToJPG, exportToPDF, exportForWhatsApp, exportToClipboard } from '@/lib/export'
 import { saveState, loadState, savePlan, findPlan, saveProjectSitePlan, loadProjectSitePlan } from '@/lib/storage'
@@ -14,7 +15,7 @@ import { CARD_WIDTH, CARD_HEIGHT } from '@/config/card'
 import type { AppState, CalcVariant, CalcResult } from '@/types'
 import { imperialTemplate } from '@/projectTemplates/imperial'
 
-type AppMode = 'offer' | 'calculator' | 'conditions'
+type AppMode = 'offer' | 'calculator' | 'conditions' | 'prepayment'
 
 // ── Pricing reference panel (cheat-sheet visible next to card on desktop) ──────
 const REF_DATA: Record<string, { title: string; tag?: string; rows: { label: string; r: string; f: string; t: string; svo?: boolean }[] }[]> = {
@@ -153,6 +154,16 @@ function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMo
           }`}
       >
         УСЛОВИЯ
+      </button>
+      <button
+        onClick={() => onModeChange('prepayment')}
+        className={`px-4 py-1.5 text-xs font-bold rounded tracking-wide transition-colors border
+          ${mode === 'prepayment'
+            ? 'bg-imperial-navy text-white border-imperial-navy'
+            : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
+          }`}
+      >
+        ПЕРЕСЧЁТ
       </button>
     </div>
   )
@@ -324,6 +335,28 @@ export default function HomePage() {
           <TabBar mode={mode} onModeChange={setMode} />
         </div>
         <PricingConditions />
+      </div>
+    )
+  }
+
+  // ── PREPAYMENT MODE ──
+  if (mode === 'prepayment') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', minHeight: '-webkit-fill-available' }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderBottom: '1px solid #E5DDD4',
+          padding: '10px 16px',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          <TabBar mode={mode} onModeChange={setMode} />
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+          <PrepaymentCalculator />
+        </div>
       </div>
     )
   }
