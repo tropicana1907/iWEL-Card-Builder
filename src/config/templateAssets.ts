@@ -15,8 +15,8 @@ export const SITEPLAN_TEMPLATES: AssetTemplate[] = [
   {
     id: 'imperial-siteplan',
     project: 'imperial',
-    label: 'Империал — генплан (блоки 1–4)',
-    src: `${BASE}/templates/siteplans/imperial.jpg`,
+    label: 'Империал — генплан (блоки 1–5)',
+    src: `${BASE}/templates/siteplans/imperial.webp`,
   },
   {
     id: 'towers-aerial',
