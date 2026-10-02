@@ -29,10 +29,13 @@ export const SITEPLAN_TEMPLATES: AssetTemplate[] = [
 // Types, areas and images come from the official project presentations —
 // alt-texts of the 3D plans carried the exact areas.
 export const FLOORPLAN_TEMPLATES: AssetTemplate[] = [
-  { id: 'imperial-penthouse-57', project: 'imperial', label: 'Империал · Пентхаус 57,31 м²', src: `${BASE}/templates/floorplans/imperial-penthouse-57.webp` },
-  { id: 'imperial-2k-81', project: 'imperial', label: 'Империал · 2-комнатная 81 м²', src: `${BASE}/templates/floorplans/imperial-2k-81.webp` },
-  { id: 'imperial-2k-56', project: 'imperial', label: 'Империал · 2-комнатная 56,51 м²', src: `${BASE}/templates/floorplans/imperial-2k-56.webp` },
-  { id: 'imperial-studio-28', project: 'imperial', label: 'Империал · Студия 28,32 м²', src: `${BASE}/templates/floorplans/imperial-studio-28.webp` },
+  { id: 'imperial-b5-f16-kv1', project: 'imperial', label: 'Империал · №1 · 68,65 м² · 5 блок, 16 этаж', src: `${BASE}/templates/floorplans/imperial-b5-f16-kv1-68.webp` },
+  { id: 'imperial-b5-f16-kv2', project: 'imperial', label: 'Империал · №2 · 82,90 м² · 5 блок, 16 этаж', src: `${BASE}/templates/floorplans/imperial-b5-f16-kv2-82.webp` },
+  { id: 'imperial-b5-f16-kv3', project: 'imperial', label: 'Империал · №3 · 45,70 м² · 5 блок, 16 этаж', src: `${BASE}/templates/floorplans/imperial-b5-f16-kv3-45.webp` },
+  { id: 'imperial-b5-f16-kv4', project: 'imperial', label: 'Империал · №4 · 46,00 м² · 5 блок, 16 этаж', src: `${BASE}/templates/floorplans/imperial-b5-f16-kv4-46.webp` },
+  { id: 'imperial-b5-f16-kv5', project: 'imperial', label: 'Империал · №5 · 45,70 м² · 5 блок, 16 этаж', src: `${BASE}/templates/floorplans/imperial-b5-f16-kv5-45.webp` },
+  { id: 'imperial-b5-f16-kv6', project: 'imperial', label: 'Империал · №6 · 82,90 м² · 5 блок, 16 этаж', src: `${BASE}/templates/floorplans/imperial-b5-f16-kv6-82.webp` },
+  { id: 'imperial-b5-f16-kv7', project: 'imperial', label: 'Империал · №7 · 68,65 м² · 5 блок, 16 этаж', src: `${BASE}/templates/floorplans/imperial-b5-f16-kv7-68.webp` },
   { id: 'towers-3k-107', project: 'towers', label: 'Towers · 3-комнатная 107,63 м²', src: `${BASE}/templates/floorplans/towers-3k-107.webp` },
   { id: 'towers-2k-70', project: 'towers', label: 'Towers · 2-комнатная 70,21 м²', src: `${BASE}/templates/floorplans/towers-2k-70.webp` },
   { id: 'towers-1k-43', project: 'towers', label: 'Towers · 1-комнатная 43,94 м²', src: `${BASE}/templates/floorplans/towers-1k-43.webp` },
