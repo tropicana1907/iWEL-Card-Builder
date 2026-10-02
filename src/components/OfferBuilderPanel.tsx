@@ -77,6 +77,14 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
   const [showSitePlanTemplates, setShowSitePlanTemplates] = useState(false)
   // Floorplan picker tab — defaults to the card's current project
   const [planTab, setPlanTab] = useState<string>('imperial')
+  // Block filter inside the project tab — defaults to the card's block
+  const [planBlock, setPlanBlock] = useState<number | null>(null)
+  const tabTemplates = FLOORPLAN_TEMPLATES.filter(t => t.project === planTab)
+  const tabBlocks = Array.from(new Set(tabTemplates.map(t => t.block).filter((b): b is number => b !== undefined))).sort((a, b) => a - b)
+  const activeBlock = planBlock !== null && tabBlocks.includes(planBlock) ? planBlock : (tabBlocks[0] ?? null)
+  const visiblePlanTemplates = activeBlock === null
+    ? tabTemplates
+    : tabTemplates.filter(t => t.block === undefined || t.block === activeBlock)
 
   const handleOpenAptPicker = () => {
     const all = loadApartments()
@@ -548,6 +556,7 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
             if (state.projectTemplate === 'imperial' || state.projectTemplate === 'towers') {
               setPlanTab(state.projectTemplate)
             }
+            setPlanBlock(state.block)
           }}
           className="w-full py-2.5 border border-imperial-bronze rounded text-xs text-imperial-bronze hover:bg-imperial-beige transition-colors font-semibold tracking-wide mb-3"
         >
@@ -576,14 +585,32 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
                 </button>
               ))}
             </div>
+            {/* Block filter */}
+            {tabBlocks.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 px-2 pt-2">
+                {tabBlocks.map(b => (
+                  <button
+                    key={b}
+                    onClick={() => setPlanBlock(b)}
+                    className={`px-2.5 py-1 rounded-full border text-[11px] font-semibold transition-colors
+                      ${activeBlock === b
+                        ? 'bg-imperial-bronze border-imperial-bronze text-white'
+                        : 'bg-white border-imperial-greige text-imperial-navy hover:border-imperial-bronze'
+                      }`}
+                  >
+                    Блок {b}
+                  </button>
+                ))}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-2 p-2 max-h-80 overflow-y-auto">
-              {FLOORPLAN_TEMPLATES.filter(t => t.project === planTab).map(t => (
+              {visiblePlanTemplates.map(t => (
                 <button
                   key={t.id}
                   onClick={() => {
                     onChange({ planImage: t.src, planLocked: false })
                     setShowPlanTemplates(false)
-                    onMsg?.(`Планировка «${t.label}» выбрана ✓`)
+                    onMsg?.(`Планировка «${t.label}${t.block !== undefined ? ` · блок ${t.block}` : ''}» выбрана ✓`)
                   }}
                   className="border border-imperial-greige rounded overflow-hidden hover:border-imperial-bronze transition-colors bg-imperial-ivory"
                 >
