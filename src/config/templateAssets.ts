@@ -29,8 +29,6 @@ export const SITEPLAN_TEMPLATES: AssetTemplate[] = [
 // Types, areas and images come from the official project presentations —
 // alt-texts of the 3D plans carried the exact areas.
 export const FLOORPLAN_TEMPLATES: AssetTemplate[] = [
-  { id: 'imperial-penthouse-104', project: 'imperial', label: 'Империал · Пентхаус 104,11 м²', src: `${BASE}/templates/floorplans/imperial-penthouse-104.webp` },
-  { id: 'imperial-penthouse-79', project: 'imperial', label: 'Империал · Пентхаус 79,75 м²', src: `${BASE}/templates/floorplans/imperial-penthouse-79.webp` },
   { id: 'imperial-penthouse-57', project: 'imperial', label: 'Империал · Пентхаус 57,31 м²', src: `${BASE}/templates/floorplans/imperial-penthouse-57.webp` },
   { id: 'imperial-2k-81', project: 'imperial', label: 'Империал · 2-комнатная 81 м²', src: `${BASE}/templates/floorplans/imperial-2k-81.webp` },
   { id: 'imperial-2k-56', project: 'imperial', label: 'Империал · 2-комнатная 56,51 м²', src: `${BASE}/templates/floorplans/imperial-2k-56.webp` },
