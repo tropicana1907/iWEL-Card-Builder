@@ -26,7 +26,7 @@ export const towersTemplate: ProjectTemplate = {
   advantages: [
     { id: 1, icon: 'location', line1: '300 метров', line2: 'до духовного центра', line3: '' },
     { id: 2, icon: 'building', line1: 'Монолитная', line2: 'технология', line3: 'строительства' },
-    { id: 3, icon: 'window', line1: 'Панорамные окна в пол,', line2: 'высота потолка 3,30 м', line3: '' },
+    { id: 3, icon: 'window', line1: 'Панорамные окна,', line2: 'высота потолков 3,3 м', line3: '' },
     { id: 4, icon: 'elevator', line1: 'Высокоскоростные', line2: 'лифты', line3: '' },
     { id: 5, icon: 'park', line1: '70% территории —', line2: 'парк для жителей', line3: 'с падел-кортом' },
     { id: 6, icon: 'school', line1: 'Школа и детский', line2: 'сад рядом', line3: '' },
