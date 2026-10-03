@@ -21,10 +21,10 @@ export const SITEPLAN_TEMPLATES: AssetTemplate[] = [
     src: `${BASE}/templates/siteplans/imperial.webp`,
   },
   {
-    id: 'towers-aerial',
+    id: 'towers-siteplan',
     project: 'towers',
-    label: 'Towers — генплан',
-    src: `${BASE}/templates/siteplans/towers-aerial.jpg`,
+    label: 'Towers — генплан (корпуса A–C, 1–5)',
+    src: `${BASE}/templates/siteplans/towers.webp`,
   },
 ]
 
