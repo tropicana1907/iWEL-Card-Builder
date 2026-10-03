@@ -79,6 +79,16 @@ export function IconParking({ size = 36, color = '#B5924C' }: IconProps) {
   )
 }
 
+export function IconSea({ size = 36, color = '#B5924C' }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 9c2 0 2-1.5 4-1.5S8 9 10 9s2-1.5 4-1.5S16 9 18 9s2-1.5 4-1.5"/>
+      <path d="M2 13.5c2 0 2-1.5 4-1.5s2 1.5 4 1.5 2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/>
+      <path d="M2 18c2 0 2-1.5 4-1.5S8 18 10 18s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/>
+    </svg>
+  )
+}
+
 const ICON_MAP: Record<string, React.FC<IconProps>> = {
   location: IconLocation,
   park: IconPark,
@@ -88,6 +98,7 @@ const ICON_MAP: Record<string, React.FC<IconProps>> = {
   school: IconSchool,
   security: IconSecurity,
   parking: IconParking,
+  sea: IconSea,
 }
 
 export function AdvantageIcon({ name, size = 36, color = '#B5924C' }: { name: string; size?: number; color?: string }) {

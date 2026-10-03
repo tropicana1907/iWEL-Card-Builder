@@ -31,6 +31,6 @@ export const towersTemplate: ProjectTemplate = {
     { id: 5, icon: 'park', line1: '70% территории —', line2: 'парк для жителей', line3: 'с падел-кортом' },
     { id: 6, icon: 'school', line1: 'Школа и детский', line2: 'сад рядом', line3: '' },
     { id: 7, icon: 'security', line1: 'Служба', line2: 'безопасности', line3: '24/7' },
-    { id: 8, icon: 'parking', line1: 'Паркинг', line2: 'для жильцов', line3: '' },
+    { id: 8, icon: 'sea', line1: '900 метров', line2: 'до Каспийского моря', line3: '' },
   ],
 }
