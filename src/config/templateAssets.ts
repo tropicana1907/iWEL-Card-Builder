@@ -90,6 +90,11 @@ export const FLOORPLAN_TEMPLATES: AssetTemplate[] = [
   { id: 'imperial-b3-typical-kv8', project: 'imperial', block: 3, label: 'Империал · №8 · 81,00 м² · 2–10 этаж', src: `${BASE}/templates/floorplans/imperial-b2-b3-typical-kv8-81.webp` },
   { id: 'imperial-b3-typical-kv9', project: 'imperial', block: 3, label: 'Империал · №9 · 25,00 м² · 2–10 этаж', src: `${BASE}/templates/floorplans/imperial-b2-b3-typical-kv9-25.webp` },
   { id: 'imperial-b3-typical-kv10', project: 'imperial', block: 3, label: 'Империал · №10 · 56,51 м² · 2–10 этаж', src: `${BASE}/templates/floorplans/imperial-b2-b3-typical-kv10-56.webp` },
+  // Block 4: entrances 1 and 2 share the same two plans (same files)
+  { id: 'imperial-b4-p1-kv1', project: 'imperial', block: 4, label: 'Империал · Подъезд 1 · №1 · 75,59 м² · 2–10 этаж', src: `${BASE}/templates/floorplans/imperial-b4-euro2-76.webp` },
+  { id: 'imperial-b4-p1-kv5', project: 'imperial', block: 4, label: 'Империал · Подъезд 1 · №5 · 26,95 м² · 2–10 этаж', src: `${BASE}/templates/floorplans/imperial-b4-studio-27.webp` },
+  { id: 'imperial-b4-p2-kv1', project: 'imperial', block: 4, label: 'Империал · Подъезд 2 · №1 · 26,68 м² · 2–10 этаж', src: `${BASE}/templates/floorplans/imperial-b4-studio-27.webp` },
+  { id: 'imperial-b4-p2-kv2', project: 'imperial', block: 4, label: 'Империал · Подъезд 2 · №2 · 76,10 м² · 2–10 этаж', src: `${BASE}/templates/floorplans/imperial-b4-euro2-76.webp` },
   { id: 'towers-3k-107', project: 'towers', label: 'Towers · 3-комнатная 107,63 м²', src: `${BASE}/templates/floorplans/towers-3k-107.webp` },
   { id: 'towers-2k-70', project: 'towers', label: 'Towers · 2-комнатная 70,21 м²', src: `${BASE}/templates/floorplans/towers-2k-70.webp` },
   { id: 'towers-1k-43', project: 'towers', label: 'Towers · 1-комнатная 43,94 м²', src: `${BASE}/templates/floorplans/towers-1k-43.webp` },
