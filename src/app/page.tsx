@@ -124,10 +124,10 @@ const DEFAULT_STATE: AppState = {
 
 function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMode) => void }) {
   return (
-    <div className="flex gap-1.5">
+    <div className="flex gap-1.5 w-full lg:w-auto">
       <button
         onClick={() => onModeChange('offer')}
-        className={`px-4 py-1.5 text-xs font-bold rounded tracking-wide transition-colors border
+        className={`flex-1 lg:flex-none px-1.5 lg:px-4 py-1.5 text-[11px] lg:text-xs leading-tight font-bold rounded tracking-wide transition-colors border
           ${mode === 'offer'
             ? 'bg-imperial-navy text-white border-imperial-navy'
             : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
@@ -137,7 +137,7 @@ function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMo
       </button>
       <button
         onClick={() => onModeChange('calculator')}
-        className={`px-4 py-1.5 text-xs font-bold rounded tracking-wide transition-colors border
+        className={`flex-1 lg:flex-none px-1.5 lg:px-4 py-1.5 text-[11px] lg:text-xs leading-tight font-bold rounded tracking-wide transition-colors border
           ${mode === 'calculator'
             ? 'bg-imperial-navy text-white border-imperial-navy'
             : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
@@ -147,7 +147,7 @@ function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMo
       </button>
       <button
         onClick={() => onModeChange('conditions')}
-        className={`px-4 py-1.5 text-xs font-bold rounded tracking-wide transition-colors border
+        className={`flex-1 lg:flex-none px-1.5 lg:px-4 py-1.5 text-[11px] lg:text-xs leading-tight font-bold rounded tracking-wide transition-colors border
           ${mode === 'conditions'
             ? 'bg-imperial-bronze text-white border-imperial-bronze'
             : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
@@ -157,7 +157,7 @@ function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMo
       </button>
       <button
         onClick={() => onModeChange('prepayment')}
-        className={`px-4 py-1.5 text-xs font-bold rounded tracking-wide transition-colors border
+        className={`flex-1 lg:flex-none px-1.5 lg:px-4 py-1.5 text-[11px] lg:text-xs leading-tight font-bold rounded tracking-wide transition-colors border
           ${mode === 'prepayment'
             ? 'bg-imperial-navy text-white border-imperial-navy'
             : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'

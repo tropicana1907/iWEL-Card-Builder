@@ -325,12 +325,12 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
         <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
             <Label>Блок</Label>
-            <div className="flex gap-1 flex-wrap">
+            <div className="grid grid-cols-5 gap-1">
               {[1, 2, 3, 4, 5].map(n => (
                 <button
                   key={n}
                   onClick={() => onChange({ block: n })}
-                  className={`w-9 h-9 rounded text-sm font-bold border transition-colors
+                  className={`w-full h-9 rounded text-sm font-bold border transition-colors
                     ${state.block === n
                       ? 'bg-imperial-navy text-white border-imperial-navy'
                       : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-navy'
@@ -603,7 +603,7 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
                 ))}
               </div>
             )}
-            <div className="grid grid-cols-2 gap-2 p-2 max-h-80 overflow-y-auto">
+            <div className="grid grid-cols-2 gap-2 p-2 max-h-[65vh] lg:max-h-80 overflow-y-auto">
               {visiblePlanTemplates.map(t => (
                 <button
                   key={t.id}
