@@ -246,11 +246,9 @@ export default function HomePage() {
     if (!state.offerCalcResult && !usingLegacyImperialGrid) missing.push('цена за м²')
     if (!state.type) missing.push('тип квартиры')
     if (!state.planImage) missing.push('планировку квартиры')
-    if (!state.floors) missing.push('этаж')
+    // Floor, view point and view direction are optional — managers add them
+    // when they have time; the card renders cleanly without them
     if (!state.customSitePlan) missing.push('генплан')
-    if (state.anchorX === null) missing.push('точку вида')
-    const hasView = state.viewWest || state.viewNorth || state.viewEast || state.viewSouth
-    if (!hasView) missing.push('направление вида')
     return missing
   }
 

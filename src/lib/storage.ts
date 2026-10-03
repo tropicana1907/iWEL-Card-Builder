@@ -1,8 +1,9 @@
-import type { FloorplanEntry, AppState, ApartmentEntry } from '@/types'
+import type { FloorplanEntry, AppState, ApartmentEntry, CalcVariant } from '@/types'
 
 const PLANS_KEY = 'imperial_plans'
 const STATE_KEY = 'imperial_state'
 const APTS_KEY = 'imperial_apartments'
+const CALC_KEY = 'imperial_calc_variants'
 
 export function savePlan(entry: FloorplanEntry): boolean {
   try {
@@ -138,4 +139,22 @@ export function deleteApartment(id: string): void {
     localStorage.setItem(APTS_KEY, JSON.stringify(apts))
     localStorage.removeItem(`iwel_apt_plan_${id}`)
   } catch {}
+}
+
+// Quick calculator variants — kept so switching tabs doesn't wipe the calculation
+export function saveCalcVariants(variants: CalcVariant[]): void {
+  try {
+    localStorage.setItem(CALC_KEY, JSON.stringify(variants))
+  } catch {}
+}
+
+export function loadCalcVariants(): CalcVariant[] | null {
+  try {
+    const raw = localStorage.getItem(CALC_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null
+  } catch {
+    return null
+  }
 }

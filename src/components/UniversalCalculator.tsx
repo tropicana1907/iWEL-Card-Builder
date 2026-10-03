@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { CalcVariant, CalcResult, ApartmentType, ProjectPreset, CalcMode } from '@/types'
 import { parseArea, fmt, calcForward, calcReverse, suggestDownPayment, PRESET_PRICES } from '@/lib/calculator'
 import { APARTMENT_TYPES } from '@/config/constants'
+import { saveCalcVariants, loadCalcVariants } from '@/lib/storage'
 
 const C = {
   navy: '#1B2D4F',
@@ -415,7 +416,17 @@ interface Props {
 let nextId = 2
 
 export default function UniversalCalculator({ onCreateOffer }: Props) {
-  const [variants, setVariants] = useState<CalcVariant[]>([makeVariant('1')])
+  // Restore the previous calculation — the component unmounts on every tab switch
+  const [variants, setVariants] = useState<CalcVariant[]>(() => {
+    const saved = typeof window !== 'undefined' ? loadCalcVariants() : null
+    if (!saved) return [makeVariant('1')]
+    nextId = Math.max(nextId, ...saved.map(v => Number(v.id) + 1).filter(n => Number.isFinite(n)))
+    return saved.map(v => ({ ...makeVariant(v.id), ...v }))
+  })
+
+  useEffect(() => {
+    saveCalcVariants(variants)
+  }, [variants])
 
   const addVariant = () => {
     setVariants(prev => [...prev, makeVariant(String(nextId++))])

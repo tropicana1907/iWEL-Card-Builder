@@ -172,8 +172,18 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
     onChange({ offerPricePerSqm: p, offerCalcResult: calc })
   }
 
+  // Months typed as a string so the field can be cleared and retyped
+  // (v1 snapped an empty field straight back to 36)
+  const [monthsStr, setMonthsStr] = useState(() => String(months))
+  useEffect(() => {
+    setMonthsStr(prev => (parseInt(prev, 10) === months ? prev : String(months)))
+  }, [months])
+
   const handleMonthsChange = (value: string) => {
-    const m = parseInt(value, 10) || 36
+    const digits = value.replace(/\D/g, '').slice(0, 3)
+    setMonthsStr(digits)
+    const m = parseInt(digits, 10)
+    if (!m) return
     const calc = syncCalc(area, effectivePpm, dp, m)
     onChange({ offerMonths: m, offerCalcResult: calc })
   }
@@ -526,12 +536,12 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
           <div className="mb-3">
             <Label>Срок рассрочки, мес</Label>
             <input
-              type="number"
+              type="text"
               inputMode="numeric"
-              value={months}
-              min="1"
-              max="240"
+              value={monthsStr}
+              placeholder="36"
               onChange={e => handleMonthsChange(e.target.value)}
+              onBlur={() => { if (!parseInt(monthsStr, 10)) setMonthsStr(String(months)) }}
               className="w-full border border-imperial-greige rounded px-3 py-2 text-sm text-imperial-navy focus:outline-none focus:border-imperial-bronze"
             />
           </div>
