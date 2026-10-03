@@ -9,8 +9,19 @@ export interface AssetTemplate {
   project: 'imperial' | 'towers' | string
   label: string
   src: string
-  // Imperial/Towers block — the floorplan picker groups templates by it
-  block?: number
+  // Imperial/Towers block — the floorplan picker groups templates by it.
+  // An array means one shared set of plans for several blocks (one chip «Блок 1–3»)
+  block?: number | number[]
+}
+
+export function templateBlocks(t: AssetTemplate): number[] {
+  return t.block === undefined ? [] : Array.isArray(t.block) ? t.block : [t.block]
+}
+
+export function blockLabel(blocks: number[]): string {
+  const b = [...blocks].sort((x, y) => x - y)
+  const consecutive = b.every((n, i) => i === 0 || n === b[i - 1] + 1)
+  return `Блок ${b.length > 1 && consecutive ? `${b[0]}–${b[b.length - 1]}` : b.join(', ')}`
 }
 
 export const SITEPLAN_TEMPLATES: AssetTemplate[] = [
@@ -95,16 +106,10 @@ export const FLOORPLAN_TEMPLATES: AssetTemplate[] = [
   { id: 'imperial-b4-p1-kv5', project: 'imperial', block: 4, label: 'Империал · Подъезд 1 · №5 · 26,95 м² · 2–10 этаж', src: `${BASE}/templates/floorplans/imperial-b4-studio-27.webp` },
   { id: 'imperial-b4-p2-kv1', project: 'imperial', block: 4, label: 'Империал · Подъезд 2 · №1 · 26,68 м² · 2–10 этаж', src: `${BASE}/templates/floorplans/imperial-b4-studio-27.webp` },
   { id: 'imperial-b4-p2-kv2', project: 'imperial', block: 4, label: 'Империал · Подъезд 2 · №2 · 76,10 м² · 2–10 этаж', src: `${BASE}/templates/floorplans/imperial-b4-euro2-76.webp` },
-  // Towers blocks 1–3 share the same plans (same files)
-  { id: 'towers-b1-studio', project: 'towers', block: 1, label: 'Towers · Студия 21,33 м²', src: `${BASE}/templates/floorplans/towers-studio-21.webp` },
-  { id: 'towers-b1-1k', project: 'towers', block: 1, label: 'Towers · 1-комнатная 44,00 м²', src: `${BASE}/templates/floorplans/towers-1k-43.webp` },
-  { id: 'towers-b1-2k', project: 'towers', block: 1, label: 'Towers · 2-комнатная 70,00 м²', src: `${BASE}/templates/floorplans/towers-2k-70.webp` },
-  { id: 'towers-b2-studio', project: 'towers', block: 2, label: 'Towers · Студия 21,33 м²', src: `${BASE}/templates/floorplans/towers-studio-21.webp` },
-  { id: 'towers-b2-1k', project: 'towers', block: 2, label: 'Towers · 1-комнатная 44,00 м²', src: `${BASE}/templates/floorplans/towers-1k-43.webp` },
-  { id: 'towers-b2-2k', project: 'towers', block: 2, label: 'Towers · 2-комнатная 70,00 м²', src: `${BASE}/templates/floorplans/towers-2k-70.webp` },
-  { id: 'towers-b3-studio', project: 'towers', block: 3, label: 'Towers · Студия 21,33 м²', src: `${BASE}/templates/floorplans/towers-studio-21.webp` },
-  { id: 'towers-b3-1k', project: 'towers', block: 3, label: 'Towers · 1-комнатная 44,00 м²', src: `${BASE}/templates/floorplans/towers-1k-43.webp` },
-  { id: 'towers-b3-2k', project: 'towers', block: 3, label: 'Towers · 2-комнатная 70,00 м²', src: `${BASE}/templates/floorplans/towers-2k-70.webp` },
+  // Towers blocks 1–3 have identical plans — one chip «Блок 1–3»
+  { id: 'towers-b1-3-studio', project: 'towers', block: [1, 2, 3], label: 'Towers · Студия 21,33 м²', src: `${BASE}/templates/floorplans/towers-studio-21.webp` },
+  { id: 'towers-b1-3-1k', project: 'towers', block: [1, 2, 3], label: 'Towers · 1-комнатная 44,00 м²', src: `${BASE}/templates/floorplans/towers-1k-43.webp` },
+  { id: 'towers-b1-3-2k', project: 'towers', block: [1, 2, 3], label: 'Towers · 2-комнатная 70,00 м²', src: `${BASE}/templates/floorplans/towers-2k-70.webp` },
   { id: 'towers-b5-kv1', project: 'towers', block: 5, label: 'Towers · №1 · 86,50 м²', src: `${BASE}/templates/floorplans/towers-b5-kv1-86.webp` },
   { id: 'towers-b5-kv3', project: 'towers', block: 5, label: 'Towers · №3 · 87,22 м²', src: `${BASE}/templates/floorplans/towers-b5-kv3-87.webp` },
   { id: 'towers-b5-kv4', project: 'towers', block: 5, label: 'Towers · №4 · 62,78 м²', src: `${BASE}/templates/floorplans/towers-b5-kv4-62.webp` },

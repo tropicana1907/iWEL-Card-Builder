@@ -1,4 +1,5 @@
 import type { FloorplanEntry, AppState, ApartmentEntry, CalcVariant } from '@/types'
+import { SITEPLAN_TEMPLATES } from '@/config/templateAssets'
 
 const PLANS_KEY = 'imperial_plans'
 const STATE_KEY = 'imperial_state'
@@ -40,13 +41,29 @@ export function deletePlan(id: string): void {
   } catch {}
 }
 
+// No view point, no rays — applied on load and whenever the site plan or project changes
+export const NO_VIEW_POINT = {
+  anchorX: null,
+  anchorY: null,
+  viewWest: false,
+  viewNorth: false,
+  viewEast: false,
+  viewSouth: false,
+} satisfies Partial<AppState>
+
+const VIEW_POINT_KEYS = Object.keys(NO_VIEW_POINT) as (keyof typeof NO_VIEW_POINT)[]
+
 export function saveState(state: AppState): void {
   try {
     // Exclude large data URLs and transient UI flags from the persisted state:
     // showSitePlanEditor persisted in v1 → the modal reopened after page reload
+    // The view point and rays belong to one site plan — they are not persisted
+    // either (a stale point reappeared on the new Towers site plan, on block C)
     const { planImage: _p, customSitePlan: _c, showSitePlanEditor: _e, ...rest } = state
     void _p; void _c; void _e
-    localStorage.setItem(STATE_KEY, JSON.stringify(rest))
+    const persisted: Partial<AppState> = { ...rest }
+    for (const k of VIEW_POINT_KEYS) delete persisted[k]
+    localStorage.setItem(STATE_KEY, JSON.stringify(persisted))
   } catch {}
 }
 
@@ -61,8 +78,9 @@ export function loadState(): Partial<AppState> {
     if (parsed.offerPricePerSqm !== undefined) parsed.offerPricePerSqm = Number(parsed.offerPricePerSqm) || 0
     if (parsed.offerMonths !== undefined) parsed.offerMonths = Number(parsed.offerMonths) || 36
     if (parsed.downPayment !== undefined) parsed.downPayment = Number(parsed.downPayment) || 0
-    // Never restore transient UI flags (older saved states may still carry them)
+    // Never restore transient UI flags or the view point (older saved states may still carry them)
     delete parsed.showSitePlanEditor
+    for (const k of VIEW_POINT_KEYS) delete parsed[k]
     return parsed
   } catch {
     return {}
@@ -82,7 +100,13 @@ export function saveProjectSitePlan(projectId: string, dataUrl: string | null): 
 
 export function loadProjectSitePlan(projectId: string): string | null {
   try {
-    return localStorage.getItem(`iwel_siteplan_${projectId}`)
+    const saved = localStorage.getItem(`iwel_siteplan_${projectId}`)
+    // A bundled template that no longer exists (e.g. the old towers-aerial.jpg)
+    // falls back to the project's current bundled site plan
+    if (saved && saved.includes('/templates/siteplans/') && !SITEPLAN_TEMPLATES.some(t => t.src === saved)) {
+      return SITEPLAN_TEMPLATES.find(t => t.project === projectId)?.src ?? null
+    }
+    return saved
   } catch {
     return null
   }

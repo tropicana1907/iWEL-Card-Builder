@@ -9,7 +9,7 @@ import PricingConditions from '@/components/PricingConditions'
 import PrepaymentCalculator from '@/components/PrepaymentCalculator'
 import { calculatePrices, parseArea } from '@/lib/calculator'
 import { exportToPNG, exportToJPG, exportToPDF, exportForWhatsApp, exportToClipboard } from '@/lib/export'
-import { saveState, loadState, savePlan, findPlan, saveProjectSitePlan, loadProjectSitePlan } from '@/lib/storage'
+import { saveState, loadState, savePlan, findPlan, saveProjectSitePlan, loadProjectSitePlan, NO_VIEW_POINT } from '@/lib/storage'
 import { getTemplate } from '@/projectTemplates'
 import { CARD_WIDTH, CARD_HEIGHT } from '@/config/card'
 import type { AppState, CalcVariant, CalcResult } from '@/types'
@@ -313,6 +313,7 @@ export default function HomePage() {
       offerCalcMode: variant.mode,
       downPayment: calcResult.requiredDownPayment,
       ...(savedSitePlan ? { customSitePlan: savedSitePlan } : {}),
+      ...NO_VIEW_POINT,
     })
     setMode('offer')
   }
@@ -585,7 +586,7 @@ export default function HomePage() {
               showSitePlanEditor: false,
             })
           }}
-          onUploadSitePlan={(dataUrl) => update({ customSitePlan: dataUrl })}
+          onUploadSitePlan={(dataUrl) => update({ customSitePlan: dataUrl, ...NO_VIEW_POINT })}
           onClose={() => update({ showSitePlanEditor: false })}
         />
       )}

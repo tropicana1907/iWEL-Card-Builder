@@ -8,8 +8,8 @@ import { imperialTemplate } from '@/projectTemplates/imperial'
 import { towersTemplate } from '@/projectTemplates/towers'
 import { azurPrimeTemplate } from '@/projectTemplates/azurPrime'
 import { azurResidenceTemplate } from '@/projectTemplates/azurResidence'
-import { saveApartment, loadApartments, loadApartmentWithPlan, loadProjectSitePlan } from '@/lib/storage'
-import { SITEPLAN_TEMPLATES, FLOORPLAN_TEMPLATES, FLOORPLAN_TABS, templatesForProject } from '@/config/templateAssets'
+import { saveApartment, loadApartments, loadApartmentWithPlan, loadProjectSitePlan, NO_VIEW_POINT } from '@/lib/storage'
+import { SITEPLAN_TEMPLATES, FLOORPLAN_TEMPLATES, FLOORPLAN_TABS, templatesForProject, templateBlocks, blockLabel } from '@/config/templateAssets'
 import type { ApartmentEntry } from '@/types'
 
 const fmtNum = (n: number) =>
@@ -80,11 +80,14 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
   // Block filter inside the project tab — defaults to the card's block
   const [planBlock, setPlanBlock] = useState<number | null>(null)
   const tabTemplates = FLOORPLAN_TEMPLATES.filter(t => t.project === planTab)
-  const tabBlocks = Array.from(new Set(tabTemplates.map(t => t.block).filter((b): b is number => b !== undefined))).sort((a, b) => a - b)
-  const activeBlock = planBlock !== null && tabBlocks.includes(planBlock) ? planBlock : (tabBlocks[0] ?? null)
-  const visiblePlanTemplates = activeBlock === null
+  // One chip per distinct block set: Imperial «Блок 2», Towers «Блок 1–3»
+  const blockGroups = Array.from(
+    new Map(tabTemplates.map(templateBlocks).filter(b => b.length > 0).map(b => [b.join(','), b])).values()
+  ).sort((a, b) => Math.min(...a) - Math.min(...b))
+  const activeGroup = (planBlock !== null ? blockGroups.find(g => g.includes(planBlock)) : undefined) ?? blockGroups[0] ?? null
+  const visiblePlanTemplates = activeGroup === null
     ? tabTemplates
-    : tabTemplates.filter(t => t.block === undefined || t.block === activeBlock)
+    : tabTemplates.filter(t => t.block === undefined || templateBlocks(t).join(',') === activeGroup.join(','))
 
   const handleOpenAptPicker = () => {
     const all = loadApartments()
@@ -230,6 +233,7 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
                     compassOrientation: tpl?.compassOrientation ?? state.compassOrientation,
                     ceilingHeight: tpl?.defaultCeilingHeight ?? state.ceilingHeight,
                     ...(savedSitePlan !== null ? { customSitePlan: savedSitePlan } : {}),
+                    ...NO_VIEW_POINT,
                   })
                 }}
                 className={`flex-1 py-1.5 text-xs font-semibold rounded border transition-colors disabled:opacity-40 disabled:cursor-not-allowed
@@ -596,19 +600,19 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
               ))}
             </div>
             {/* Block filter */}
-            {tabBlocks.length > 0 && (
+            {blockGroups.length > 0 && (
               <div className="flex flex-wrap gap-1.5 px-2 pt-2">
-                {tabBlocks.map(b => (
+                {blockGroups.map(g => (
                   <button
-                    key={b}
-                    onClick={() => setPlanBlock(b)}
+                    key={g.join(',')}
+                    onClick={() => setPlanBlock(g[0])}
                     className={`px-2.5 py-1 rounded-full border text-[11px] font-semibold transition-colors
-                      ${activeBlock === b
+                      ${activeGroup === g
                         ? 'bg-imperial-bronze border-imperial-bronze text-white'
                         : 'bg-white border-imperial-greige text-imperial-navy hover:border-imperial-bronze'
                       }`}
                   >
-                    Блок {b}
+                    {blockLabel(g)}
                   </button>
                 ))}
               </div>
@@ -620,7 +624,7 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
                   onClick={() => {
                     onChange({ planImage: t.src, planLocked: false })
                     setShowPlanTemplates(false)
-                    onMsg?.(`Планировка «${t.label}${t.block !== undefined ? ` · блок ${t.block}` : ''}» выбрана ✓`)
+                    onMsg?.(`Планировка «${t.label}${t.block !== undefined ? ` · ${blockLabel(templateBlocks(t)).toLowerCase()}` : ''}» выбрана ✓`)
                   }}
                   className="border border-imperial-greige rounded overflow-hidden hover:border-imperial-bronze transition-colors bg-imperial-ivory"
                 >
@@ -714,7 +718,7 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
                 <button
                   key={t.id}
                   onClick={() => {
-                    onChange({ customSitePlan: t.src })
+                    onChange({ customSitePlan: t.src, ...NO_VIEW_POINT })
                     setShowSitePlanTemplates(false)
                     onMsg?.(`Генплан «${t.label}» выбран ✓`)
                   }}
