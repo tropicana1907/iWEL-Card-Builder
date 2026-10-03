@@ -498,10 +498,10 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
   const H_HEADER    = 124
   const H_TITLE     = 62
   const H_INFO      = 52
-  const H_FLOORPLAN = 900
-  const H_FINANCIAL = 270
-  const H_SITEPLAN  = 300   // 810×300 keeps 2.7:1 — must match the editor aspect ratio
-  const SITEPLAN_W  = 810
+  const H_FLOORPLAN = 897
+  const H_FINANCIAL = 243
+  const H_SITEPLAN  = 330   // 891×330 keeps 2.7:1 — must match the editor aspect ratio
+  const SITEPLAN_W  = 891
   const H_ADVANTAGES = 264
   const H_FOOTER    = 88
   // total = 2060 ✓ (CARD_HEIGHT)
@@ -670,7 +670,7 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
         <div style={{
           height: `${H_FINANCIAL}px`,
           minHeight: 0,
-          padding: '6px 40px 22px',
+          padding: '4px 40px 18px',
           overflow: 'hidden',
         }}>
           {useUniversalCalc && <UniversalFinancialSection state={state} colors={C} />}
@@ -695,7 +695,7 @@ const CardTemplate = forwardRef<HTMLDivElement, Props>(({ state, pricing, templa
         </div>
       </div>
 
-      {/* ── SITE PLAN — 810×300 (2.7:1) centred on a band ── */}
+      {/* ── SITE PLAN — 891×330 (2.7:1) centred on a band ── */}
       <div style={{ height: `${H_SITEPLAN}px`, display: 'flex', justifyContent: 'center', backgroundColor: C.beige, flexShrink: 0 }}>
       <SitePlanSection
         customSitePlan={state.customSitePlan}
