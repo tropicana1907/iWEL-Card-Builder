@@ -163,7 +163,7 @@ function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMo
             : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
           }`}
       >
-        ПЕРЕСЧЁТ
+        ДОСРОЧНОЕ ПОГАШЕНИЕ
       </button>
     </div>
   )

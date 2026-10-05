@@ -5,6 +5,7 @@ const PLANS_KEY = 'imperial_plans'
 const STATE_KEY = 'imperial_state'
 const APTS_KEY = 'imperial_apartments'
 const CALC_KEY = 'imperial_calc_variants'
+const PREPAY_KEY = 'imperial_prepayment'
 
 export function savePlan(entry: FloorplanEntry): boolean {
   try {
@@ -178,6 +179,30 @@ export function loadCalcVariants(): CalcVariant[] | null {
     if (!raw) return null
     const parsed = JSON.parse(raw)
     return Array.isArray(parsed) && parsed.length > 0 ? parsed : null
+  } catch {
+    return null
+  }
+}
+
+// Early-repayment tab inputs — kept across tab switches
+export interface PrepaymentInputs {
+  total: string
+  dp: string
+  months: string
+  atMonth: string
+  extra: string
+}
+
+export function savePrepayment(v: PrepaymentInputs): void {
+  try {
+    localStorage.setItem(PREPAY_KEY, JSON.stringify(v))
+  } catch {}
+}
+
+export function loadPrepayment(): PrepaymentInputs | null {
+  try {
+    const raw = localStorage.getItem(PREPAY_KEY)
+    return raw ? JSON.parse(raw) : null
   } catch {
     return null
   }

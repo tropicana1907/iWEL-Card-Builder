@@ -1,5 +1,6 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { savePrepayment, loadPrepayment } from '@/lib/storage'
 
 const C = {
   navy: '#1B2D4F',
@@ -14,18 +15,25 @@ const C = {
 const fmt = (n: number) =>
   n.toLocaleString('ru-RU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })
 
+// "11500000" → "11 500 000" while typing
+const fmtInput = (digits: string) => digits ? Number(digits).toLocaleString('ru-RU') : ''
+
 function Field({
   label,
   value,
   onChange,
   suffix,
   placeholder,
+  money,
+  hint,
 }: {
   label: string
   value: string
   onChange: (v: string) => void
   suffix?: string
   placeholder?: string
+  money?: boolean   // show thousands separators, store digits only
+  hint?: string
 }) {
   return (
     <div style={{ marginBottom: '12px' }}>
@@ -34,9 +42,10 @@ function Field({
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
         <input
-          type="number"
-          value={value}
-          onChange={e => onChange(e.target.value)}
+          type="text"
+          inputMode="numeric"
+          value={money ? fmtInput(value) : value}
+          onChange={e => onChange(e.target.value.replace(/\D/g, ''))}
           placeholder={placeholder}
           style={{
             flex: 1,
@@ -53,6 +62,9 @@ function Field({
           <span style={{ fontSize: '12px', color: C.navy, opacity: 0.5, whiteSpace: 'nowrap' }}>{suffix}</span>
         )}
       </div>
+      {hint && (
+        <div style={{ fontSize: '11px', color: C.navy, opacity: 0.55, marginTop: '4px' }}>{hint}</div>
+      )}
     </div>
   )
 }
@@ -75,19 +87,26 @@ function Row({ label, value, accent, sub }: { label: string; value: string; acce
 }
 
 export default function PrepaymentCalculator() {
-  const [total, setTotal] = useState('')
-  const [dpPct, setDpPct] = useState('30')
-  const [months, setMonths] = useState('24')
-  const [atMonth, setAtMonth] = useState('6')
-  const [extra, setExtra] = useState('')
+  // Inputs survive tab switches and reloads (the component unmounts on every switch)
+  const [saved] = useState(() => (typeof window !== 'undefined' ? loadPrepayment() : null))
+  const [total, setTotal] = useState(saved?.total ?? '')
+  const [dp, setDp] = useState(saved?.dp ?? '')
+  const [months, setMonths] = useState(saved?.months ?? '24')
+  const [atMonth, setAtMonth] = useState(saved?.atMonth ?? '6')
+  const [extra, setExtra] = useState(saved?.extra ?? '')
+
+  useEffect(() => {
+    savePrepayment({ total, dp, months, atMonth, extra })
+  }, [total, dp, months, atMonth, extra])
 
   const totalN = parseFloat(total) || 0
-  const dpPctN = parseFloat(dpPct) || 0
   const monthsN = parseInt(months) || 0
   const atMonthN = parseInt(atMonth) || 0
   const extraN = parseFloat(extra) || 0
 
-  const dpAmount = totalN * (dpPctN / 100)
+  // Down payment is entered in rubles; the percentage is shown as a hint
+  const dpAmount = Math.min(parseFloat(dp) || 0, totalN)
+  const dpPctN = totalN > 0 ? (dpAmount / totalN) * 100 : 0
   const remaining = totalN - dpAmount
   const monthlyOrig = monthsN > 0 ? remaining / monthsN : 0
 
@@ -122,8 +141,16 @@ export default function PrepaymentCalculator() {
             Параметры рассрочки
           </div>
 
-          <Field label="Стоимость квартиры" value={total} onChange={setTotal} suffix="₽" placeholder="например 11 500 000" />
-          <Field label="Первоначальный взнос" value={dpPct} onChange={setDpPct} suffix="%" placeholder="30" />
+          <Field label="Стоимость квартиры" value={total} onChange={setTotal} suffix="₽" placeholder="например 11 500 000" money />
+          <Field
+            label="Первоначальный взнос"
+            value={dp}
+            onChange={setDp}
+            suffix="₽"
+            placeholder="например 3 000 000"
+            money
+            hint={totalN > 0 && dpAmount > 0 ? `${dpPctN.toLocaleString('ru-RU', { maximumFractionDigits: 1 })}% от стоимости` : undefined}
+          />
           <Field label="Срок рассрочки" value={months} onChange={setMonths} suffix="мес" placeholder="24" />
 
           {totalN > 0 && dpPctN > 0 && monthsN > 0 && (
@@ -146,7 +173,7 @@ export default function PrepaymentCalculator() {
           </div>
 
           <Field label="Через сколько месяцев" value={atMonth} onChange={setAtMonth} suffix="мес" placeholder="6" />
-          <Field label="Сумма досрочного платежа" value={extra} onChange={setExtra} suffix="₽" placeholder="500 000" />
+          <Field label="Сумма досрочного платежа" value={extra} onChange={setExtra} suffix="₽" placeholder="500 000" money />
 
           {atMonthN >= monthsN && monthsN > 0 && (
             <div style={{ color: C.red, fontSize: '12px', marginBottom: '12px' }}>
