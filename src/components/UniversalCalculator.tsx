@@ -34,8 +34,24 @@ function makeVariant(id: string): CalcVariant {
     desiredMonthly: '',
     preset: 'none',
     hasTerrace: false,
+    customMonthly: '',
+    customMonths: '18',
   }
 }
+
+// Individual schedule: down payment, then `months` equal payments, then the rest at month months+1
+function calcCustom(total: number, downPayment: number, monthly: number, months: number) {
+  const remaining = Math.max(total - downPayment, 0)
+  const paidMonthly = Math.min(monthly * months, remaining)
+  const finalPayment = Math.max(remaining - monthly * months, 0)
+  // If the monthly payments alone cover the debt, it closes before month N
+  const closesAt = monthly > 0 && monthly * months >= remaining ? Math.ceil(remaining / monthly) : months + 1
+  return { remaining, paidMonthly, finalPayment, closesAt }
+}
+
+const digits = (s: string) => s.replace(/\D/g, '')
+const fmtDigits = (s: string) => (digits(s) ? Number(digits(s)).toLocaleString('ru-RU') : '')
+
 
 function applyPreset(v: CalcVariant, preset: ProjectPreset): CalcVariant {
   const p = PRESET_PRICES[preset]
@@ -75,11 +91,44 @@ function VariantCard({
   const terraceSurcharge = variant.preset === 'imperial' && variant.hasTerrace ? 5_000 : 0
   const effectivePpm = pricePerSqm + terraceSurcharge
 
+  const isCustom = variant.mode === 'custom'
   const result = area > 0 && pricePerSqm > 0
-    ? variant.mode === 'forward'
-      ? calcForward(area, effectivePpm, downPayment, months)
-      : calcReverse(area, effectivePpm, desiredMonthly, months)
+    ? variant.mode === 'reverse'
+      ? calcReverse(area, effectivePpm, desiredMonthly, months)
+      : calcForward(area, effectivePpm, downPayment, months)
     : null
+
+  const customMonthly = parseFloat(digits(variant.customMonthly)) || 0
+  const customMonths = parseInt(variant.customMonths, 10) || 0
+  const custom = isCustom && result && customMonthly > 0 && customMonths > 0
+    ? calcCustom(result.totalPrice, downPayment, customMonthly, customMonths)
+    : null
+  const [copied, setCopied] = useState(false)
+
+  const copySummary = async () => {
+    if (!result || !custom) return
+    const r = (n: number) => fmt(Math.round(n))
+    const pct = (n: number) => `${((n / result.totalPrice) * 100).toLocaleString('ru-RU', { maximumFractionDigits: 1 })}%`
+    const proj = variant.preset !== 'none' ? PRESET_PRICES[variant.preset].label : ''
+    const lines = [
+      `Индивидуальный график рассрочки${proj ? ` — ${proj}` : ''}`,
+      `${variant.type}, ${area.toLocaleString('ru-RU')} м² × ${effectivePpm.toLocaleString('ru-RU')} ₽/м² = ${r(result.totalPrice)}`,
+      '',
+      `• Взнос при сделке: ${r(downPayment)} (${pct(downPayment)})`,
+      custom.finalPayment > 0
+        ? `• Месяцы 1–${customMonths}: по ${r(customMonthly)} — всего ${r(custom.paidMonthly)}`
+        : `• Месяцы 1–${custom.closesAt}: по ${r(customMonthly)} — квартира закрывается без итогового платежа`,
+      ...(custom.finalPayment > 0 ? [`• Месяц ${customMonths + 1}: итоговый платёж ${r(custom.finalPayment)} (${pct(custom.finalPayment)})`] : []),
+      '',
+      `Полная оплата: на ${custom.closesAt}-м месяце`,
+      `Для сравнения, обычная рассрочка на ${months} мес: ${r(result.monthlyPayment)} в месяц`,
+    ]
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'))
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2500)
+    } catch {}
+  }
 
   const set = (fields: Partial<CalcVariant>) => onChange({ ...variant, ...fields })
 
@@ -264,6 +313,7 @@ function VariantCard({
             {([
               { value: 'forward', label: '→ Платёж/мес' },
               { value: 'reverse', label: '← Нужный взнос' },
+              { value: 'custom', label: '◆ Индивид.' },
             ] as { value: CalcMode; label: string }[]).map(({ value, label }) => (
               <button
                 key={value}
@@ -284,7 +334,56 @@ function VariantCard({
       )}
 
       {/* DP + Months (forward mode) or Desired monthly (reverse mode) */}
-      {!isStudio && (
+      {!isStudio && isCustom && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <span style={labelStyle}>Взнос, ₽</span>
+            <input
+              style={inputStyle}
+              type="text"
+              inputMode="numeric"
+              value={fmtDigits(variant.downPayment)}
+              onChange={e => set({ downPayment: digits(e.target.value) })}
+              placeholder="1 500 000"
+            />
+          </div>
+          <div>
+            <span style={labelStyle}>Платёж/мес, ₽</span>
+            <input
+              style={inputStyle}
+              type="text"
+              inputMode="numeric"
+              value={fmtDigits(variant.customMonthly)}
+              onChange={e => set({ customMonthly: digits(e.target.value) })}
+              placeholder="60 000"
+            />
+          </div>
+          <div>
+            <span style={labelStyle}>Сколько месяцев</span>
+            <input
+              style={inputStyle}
+              type="text"
+              inputMode="numeric"
+              value={variant.customMonths}
+              onChange={e => set({ customMonths: digits(e.target.value).slice(0, 3) })}
+              placeholder="18"
+            />
+          </div>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <span style={labelStyle}>Обычный срок для сравнения, мес</span>
+            <input
+              style={inputStyle}
+              type="text"
+              inputMode="numeric"
+              value={variant.months}
+              onChange={e => set({ months: digits(e.target.value).slice(0, 3) })}
+              placeholder="36"
+            />
+          </div>
+        </div>
+      )}
+
+      {!isStudio && !isCustom && (
         variant.mode === 'forward' ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
@@ -358,7 +457,44 @@ function VariantCard({
           {!isStudio && (
             <ResultRow label="Рекомендованный ПВ (30%)" value={fmt(Math.round(result.totalPrice * 0.3))} highlight />
           )}
-          {!isStudio && (
+          {!isStudio && isCustom && !custom && (
+            <div style={{ fontSize: '12px', color: 'rgba(27,45,79,0.6)', marginTop: '4px' }}>
+              Укажите платёж в месяц и сколько месяцев — появится график
+            </div>
+          )}
+          {!isStudio && isCustom && custom && (
+            <>
+              <ResultRow label={`Взнос (${Math.round((downPayment / result.totalPrice) * 100)}%)`} value={fmt(downPayment)} />
+              <div style={{ margin: '10px 0 8px', borderTop: `1px solid ${C.greige}` }} />
+              <div style={{ fontSize: '11px', fontWeight: '700', color: C.navy, letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                График
+              </div>
+              <ScheduleRow label="При сделке" value={fmt(downPayment)} total={fmt(downPayment)} />
+              {custom.finalPayment > 0 ? (
+                <>
+                  <ScheduleRow label={`Мес. 1–${customMonths} × ${fmt(customMonthly)}`} value={fmt(custom.paidMonthly)} total={fmt(downPayment + custom.paidMonthly)} />
+                  <ScheduleRow label={`Мес. ${customMonths + 1} — итоговый`} value={fmt(custom.finalPayment)} total={fmt(result.totalPrice)} accent />
+                </>
+              ) : (
+                <ScheduleRow label={`Мес. 1–${custom.closesAt} × ${fmt(customMonthly)}`} value={fmt(custom.remaining)} total={fmt(result.totalPrice)} accent />
+              )}
+              <div style={{ margin: '10px 0 8px', borderTop: `1px solid ${C.greige}` }} />
+              <ResultRow label="Полная оплата" value={`на ${custom.closesAt}-м мес.`} highlight />
+              <ResultRow label={`Обычно: ${months} мес. по`} value={fmt(result.monthlyPayment)} />
+              <button
+                onClick={copySummary}
+                style={{
+                  width: '100%', marginTop: '8px', padding: '9px',
+                  backgroundColor: copied ? '#22863a' : 'white', color: copied ? 'white' : C.navy,
+                  border: `1.5px solid ${copied ? '#22863a' : C.navy}`, borderRadius: '8px',
+                  fontSize: '11px', fontWeight: '700', cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase',
+                }}
+              >
+                {copied ? 'Скопировано ✓' : 'Скопировать для согласования'}
+              </button>
+            </>
+          )}
+          {!isStudio && !isCustom && (
             <>
               {variant.mode === 'forward' ? (
                 <>
@@ -376,8 +512,8 @@ function VariantCard({
         </div>
       )}
 
-      {/* Create offer button */}
-      {result && (
+      {/* Create offer button — the card has no layout for an individual schedule yet */}
+      {result && !isCustom && (
         <button
           onClick={() => result && onCreateOffer(variant, result)}
           style={{
@@ -391,6 +527,16 @@ function VariantCard({
           Создать КП →
         </button>
       )}
+    </div>
+  )
+}
+
+function ScheduleRow({ label, value, total, accent }: { label: string; value: string; total: string; accent?: boolean }) {
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '2px 8px', marginBottom: '7px' }}>
+      <span style={{ fontSize: '12px', color: C.navy, fontWeight: accent ? 700 : 500 }}>{label}</span>
+      <span style={{ fontSize: accent ? '15px' : '13px', fontWeight: 700, color: accent ? C.bronze : C.navy, fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}>{value}</span>
+      <span style={{ fontSize: '10px', color: 'rgba(27,45,79,0.45)', gridColumn: '1 / -1', textAlign: 'right' }}>оплачено всего: {total}</span>
     </div>
   )
 }

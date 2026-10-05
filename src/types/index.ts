@@ -7,7 +7,8 @@ export type ApartmentType =
   | 'другое'
 
 export type RayWidth = 'NARROW' | 'MEDIUM' | 'WIDE'
-export type CalcMode = 'forward' | 'reverse'
+// custom — individual schedule: comfortable monthly payment for N months, then a final payment
+export type CalcMode = 'forward' | 'reverse' | 'custom'
 export type ProjectPreset = 'none' | 'imperial' | 'towers' | 'azur-prime' | 'azur-residence'
 
 export interface CompassOrientation {
@@ -28,6 +29,8 @@ export interface CalcVariant {
   desiredMonthly: string
   preset: ProjectPreset
   hasTerrace: boolean
+  customMonthly: string
+  customMonths: string
 }
 
 export interface CalcResult {
