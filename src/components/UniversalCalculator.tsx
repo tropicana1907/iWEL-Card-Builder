@@ -140,7 +140,6 @@ function VariantCard({
       ...(custom.finalPayment > 0 ? [`• Месяц ${customMonths + 1}: итоговый платёж ${r(custom.finalPayment)} (${pct(custom.finalPayment)})`] : []),
       '',
       `Полная оплата: на ${custom.closesAt}-м месяце`,
-      `Для сравнения, обычная рассрочка на ${months} мес: ${r(result.monthlyPayment)} в месяц`,
     ]
     try {
       await navigator.clipboard.writeText(lines.join('\n'))
@@ -389,17 +388,6 @@ function VariantCard({
               placeholder="18"
             />
           </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <span style={labelStyle}>Обычный срок для сравнения, мес</span>
-            <input
-              style={inputStyle}
-              type="text"
-              inputMode="numeric"
-              value={variant.months}
-              onChange={e => set({ months: digits(e.target.value).slice(0, 3) })}
-              placeholder="36"
-            />
-          </div>
         </div>
       )}
 
@@ -550,7 +538,6 @@ function VariantCard({
               )}
               <div style={{ margin: '10px 0 8px', borderTop: `1px solid ${C.greige}` }} />
               <ResultRow label="Полная оплата" value={`на ${custom.closesAt}-м мес.`} highlight />
-              <ResultRow label={`Обычно: ${months} мес. по`} value={fmt(result.monthlyPayment)} />
               <button
                 onClick={copySummary}
                 style={{
