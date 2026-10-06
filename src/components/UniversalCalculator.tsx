@@ -36,6 +36,8 @@ function makeVariant(id: string): CalcVariant {
     hasTerrace: false,
     customMonthly: '',
     customMonths: '18',
+    prepayAtMonth: '',
+    prepayExtra: '',
   }
 }
 
@@ -92,6 +94,7 @@ function VariantCard({
   const effectivePpm = pricePerSqm + terraceSurcharge
 
   const isCustom = variant.mode === 'custom'
+  const isPrepay = variant.mode === 'prepay'
   const result = area > 0 && pricePerSqm > 0
     ? variant.mode === 'reverse'
       ? calcReverse(area, effectivePpm, desiredMonthly, months)
@@ -103,6 +106,22 @@ function VariantCard({
   const custom = isCustom && result && customMonthly > 0 && customMonths > 0
     ? calcCustom(result.totalPrice, downPayment, customMonthly, customMonths)
     : null
+
+  // Prepay mode: recalculate monthly after mid-term lump sum
+  const prepayAtMonth = parseInt(variant.prepayAtMonth, 10) || 0
+  const prepayExtra = parseFloat(digits(variant.prepayExtra)) || 0
+  const prepayCalc = (() => {
+    if (!isPrepay || !result || prepayAtMonth <= 0 || prepayAtMonth >= months || prepayExtra <= 0) return null
+    const remaining = result.remainingBalance // totalPrice - downPayment
+    const monthlyOrig = remaining / months
+    const balanceAtN = remaining - prepayAtMonth * monthlyOrig
+    if (prepayExtra >= balanceAtN) return { fullyPaid: true, change: 0, newMonthly: 0, saving: 0, monthlyOrig, balanceAtN }
+    const balanceAfterExtra = balanceAtN - prepayExtra
+    const remainingMonths = months - prepayAtMonth
+    const newMonthly = balanceAfterExtra / remainingMonths
+    const saving = monthlyOrig - newMonthly
+    return { fullyPaid: false, newMonthly, saving, monthlyOrig, balanceAtN, balanceAfterExtra, remainingMonths }
+  })()
   const [copied, setCopied] = useState(false)
 
   const copySummary = async () => {
@@ -314,6 +333,7 @@ function VariantCard({
               { value: 'forward', label: '→ Платёж/мес' },
               { value: 'reverse', label: '← Нужный взнос' },
               { value: 'custom', label: '◆ Индивид.' },
+              { value: 'prepay', label: '↺ Пересчёт' },
             ] as { value: CalcMode; label: string }[]).map(({ value, label }) => (
               <button
                 key={value}
@@ -383,7 +403,57 @@ function VariantCard({
         </div>
       )}
 
-      {!isStudio && !isCustom && (
+      {/* Prepay mode inputs */}
+      {!isStudio && isPrepay && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div>
+            <span style={labelStyle}>Взнос, ₽</span>
+            <input
+              style={inputStyle}
+              type="text"
+              inputMode="numeric"
+              value={fmtDigits(variant.downPayment)}
+              onChange={e => set({ downPayment: digits(e.target.value) })}
+              placeholder="1 500 000"
+            />
+          </div>
+          <div>
+            <span style={labelStyle}>Срок, мес</span>
+            <input
+              style={inputStyle}
+              type="number"
+              value={variant.months}
+              min="1" max="240"
+              onChange={e => set({ months: e.target.value })}
+              placeholder="24"
+            />
+          </div>
+          <div>
+            <span style={labelStyle}>Через сколько мес.</span>
+            <input
+              style={inputStyle}
+              type="number"
+              value={variant.prepayAtMonth}
+              min="1"
+              onChange={e => set({ prepayAtMonth: e.target.value })}
+              placeholder="6"
+            />
+          </div>
+          <div>
+            <span style={labelStyle}>Доп. платёж, ₽</span>
+            <input
+              style={inputStyle}
+              type="text"
+              inputMode="numeric"
+              value={fmtDigits(variant.prepayExtra)}
+              onChange={e => set({ prepayExtra: digits(e.target.value) })}
+              placeholder="500 000"
+            />
+          </div>
+        </div>
+      )}
+
+      {!isStudio && !isCustom && !isPrepay && (
         variant.mode === 'forward' ? (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <div>
@@ -454,7 +524,7 @@ function VariantCard({
             </div>
           )}
           <ResultRow label="Полная стоимость" value={fmt(result.totalPrice)} bold />
-          {!isStudio && (
+          {!isStudio && !isPrepay && (
             <ResultRow label="Рекомендованный ПВ (30%)" value={fmt(Math.round(result.totalPrice * 0.3))} highlight />
           )}
           {!isStudio && isCustom && !custom && (
@@ -494,7 +564,35 @@ function VariantCard({
               </button>
             </>
           )}
-          {!isStudio && !isCustom && (
+          {!isStudio && isPrepay && (
+            <>
+              <ResultRow label="Исходный платёж/мес" value={prepayCalc ? fmt(Math.round(prepayCalc.monthlyOrig)) : '—'} />
+              {!prepayCalc && (
+                <div style={{ fontSize: '12px', color: 'rgba(27,45,79,0.5)', marginTop: '4px' }}>
+                  Укажите взнос, срок, через сколько месяцев и сумму доп. платежа
+                </div>
+              )}
+              {prepayCalc && prepayCalc.fullyPaid && (
+                <div style={{ fontSize: '13px', fontWeight: '700', color: '#2E7D32', marginTop: '6px' }}>
+                  Рассрочка полностью закрыта ✓
+                </div>
+              )}
+              {prepayCalc && !prepayCalc.fullyPaid && (
+                <>
+                  <div style={{ margin: '8px 0', borderTop: `1px solid ${C.greige}` }} />
+                  <ResultRow label={`Остаток на ${prepayAtMonth}-й мес.`} value={fmt(Math.round(prepayCalc.balanceAtN))} />
+                  <ResultRow label="После доп. платежа" value={fmt(Math.round(prepayCalc.balanceAfterExtra!))} />
+                  <ResultRow label="Осталось месяцев" value={`${prepayCalc.remainingMonths}`} />
+                  <div style={{ margin: '8px 0', borderTop: `1px solid ${C.greige}` }} />
+                  <ResultRow label="Новый платёж/мес" value={fmt(Math.round(prepayCalc.newMonthly))} highlight />
+                  {prepayCalc.saving > 0 && (
+                    <ResultRow label="Снижение платежа" value={`−${fmt(Math.round(prepayCalc.saving))}/мес`} />
+                  )}
+                </>
+              )}
+            </>
+          )}
+          {!isStudio && !isCustom && !isPrepay && (
             <>
               {variant.mode === 'forward' ? (
                 <>
@@ -512,8 +610,7 @@ function VariantCard({
         </div>
       )}
 
-      {/* Create offer button — the card has no layout for an individual schedule yet */}
-      {result && !isCustom && (
+      {result && !isCustom && !isPrepay && (
         <button
           onClick={() => result && onCreateOffer(variant, result)}
           style={{
