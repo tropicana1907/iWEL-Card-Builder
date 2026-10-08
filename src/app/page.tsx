@@ -7,15 +7,17 @@ import CardTemplate from '@/components/CardTemplate'
 import SitePlanEditor from '@/components/SitePlanEditor'
 import PricingConditions from '@/components/PricingConditions'
 import PrepaymentCalculator from '@/components/PrepaymentCalculator'
-import { calculatePrices, parseArea } from '@/lib/calculator'
+import AvailabilityView, { type AvailabilityApt, type AvailabilityProject } from '@/components/AvailabilityView'
+import { FLOORPLAN_TEMPLATES, templateBlocks } from '@/config/templateAssets'
+import { calculatePrices, parseArea, calcForward } from '@/lib/calculator'
 import { exportToPNG, exportToJPG, exportToPDF, exportForWhatsApp, exportToClipboard } from '@/lib/export'
 import { saveState, loadState, savePlan, findPlan, saveProjectSitePlan, loadProjectSitePlan, NO_VIEW_POINT } from '@/lib/storage'
 import { getTemplate } from '@/projectTemplates'
 import { CARD_WIDTH, CARD_HEIGHT } from '@/config/card'
-import type { AppState, CalcVariant, CalcResult } from '@/types'
+import type { AppState, CalcVariant, CalcResult, ApartmentType } from '@/types'
 import { imperialTemplate } from '@/projectTemplates/imperial'
 
-type AppMode = 'offer' | 'calculator' | 'conditions' | 'prepayment'
+type AppMode = 'offer' | 'calculator' | 'conditions' | 'prepayment' | 'availability'
 
 // ── Pricing reference panel (cheat-sheet visible next to card on desktop) ──────
 const REF_DATA: Record<string, { title: string; tag?: string; rows: { label: string; r: string; f: string; t: string; svo?: boolean }[] }[]> = {
@@ -124,30 +126,32 @@ const DEFAULT_STATE: AppState = {
 
 function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMode) => void }) {
   return (
-    <div className="flex gap-1.5 w-full lg:w-auto">
+    <div className="flex gap-1 lg:gap-1.5 w-full lg:w-auto">
       <button
         onClick={() => onModeChange('offer')}
-        className={`flex-1 lg:flex-none px-1.5 lg:px-4 py-1.5 text-[11px] lg:text-xs leading-tight font-bold rounded tracking-wide transition-colors border
+        className={`flex-1 min-w-0 lg:flex-none px-0.5 lg:px-4 py-1.5 text-[10px] sm:text-[11px] lg:text-xs leading-tight font-bold rounded tracking-normal lg:tracking-wide transition-colors border
           ${mode === 'offer'
             ? 'bg-imperial-navy text-white border-imperial-navy'
             : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
           }`}
       >
-        КОНСТРУКТОР КП
+        <span className="sm:hidden">КП</span>
+        <span className="hidden sm:inline">КОНСТРУКТОР КП</span>
       </button>
       <button
         onClick={() => onModeChange('calculator')}
-        className={`flex-1 lg:flex-none px-1.5 lg:px-4 py-1.5 text-[11px] lg:text-xs leading-tight font-bold rounded tracking-wide transition-colors border
+        className={`flex-1 min-w-0 lg:flex-none px-0.5 lg:px-4 py-1.5 text-[10px] sm:text-[11px] lg:text-xs leading-tight font-bold rounded tracking-normal lg:tracking-wide transition-colors border
           ${mode === 'calculator'
             ? 'bg-imperial-navy text-white border-imperial-navy'
             : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
           }`}
       >
-        БЫСТРЫЙ РАСЧЁТ
+        <span className="sm:hidden">РАСЧЁТ</span>
+        <span className="hidden sm:inline">БЫСТРЫЙ РАСЧЁТ</span>
       </button>
       <button
         onClick={() => onModeChange('conditions')}
-        className={`flex-1 lg:flex-none px-1.5 lg:px-4 py-1.5 text-[11px] lg:text-xs leading-tight font-bold rounded tracking-wide transition-colors border
+        className={`flex-1 min-w-0 lg:flex-none px-0.5 lg:px-4 py-1.5 text-[10px] sm:text-[11px] lg:text-xs leading-tight font-bold rounded tracking-normal lg:tracking-wide transition-colors border
           ${mode === 'conditions'
             ? 'bg-imperial-bronze text-white border-imperial-bronze'
             : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
@@ -157,13 +161,24 @@ function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMo
       </button>
       <button
         onClick={() => onModeChange('prepayment')}
-        className={`flex-1 lg:flex-none px-1.5 lg:px-4 py-1.5 text-[11px] lg:text-xs leading-tight font-bold rounded tracking-wide transition-colors border
+        className={`flex-1 min-w-0 lg:flex-none px-0.5 lg:px-4 py-1.5 text-[10px] sm:text-[11px] lg:text-xs leading-tight font-bold rounded tracking-normal lg:tracking-wide transition-colors border
           ${mode === 'prepayment'
             ? 'bg-imperial-navy text-white border-imperial-navy'
             : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
           }`}
       >
-        ДОСРОЧНОЕ ПОГАШЕНИЕ
+        <span className="sm:hidden">ПОГАШЕНИЕ</span>
+        <span className="hidden sm:inline">ДОСРОЧНОЕ ПОГАШЕНИЕ</span>
+      </button>
+      <button
+        onClick={() => onModeChange('availability')}
+        className={`flex-1 min-w-0 lg:flex-none px-0.5 lg:px-4 py-1.5 text-[10px] sm:text-[11px] lg:text-xs leading-tight font-bold rounded tracking-normal lg:tracking-wide transition-colors border
+          ${mode === 'availability'
+            ? 'bg-imperial-bronze text-white border-imperial-bronze'
+            : 'bg-transparent text-imperial-navy border-imperial-greige hover:border-imperial-bronze'
+          }`}
+      >
+        НАЛИЧИЕ
       </button>
     </div>
   )
@@ -316,6 +331,67 @@ export default function HomePage() {
       ...NO_VIEW_POINT,
     })
     setMode('offer')
+  }
+
+  // Apartment picked on the availability tab → prefill the offer builder
+  const handlePickApartment = (project: AvailabilityProject, apt: AvailabilityApt) => {
+    const tpl = getTemplate(project)
+    const block = parseInt(apt.block, 10) || state.block
+    const areaStr = String(apt.area)
+    const type: ApartmentType = apt.area < 30 ? 'Студия' : apt.area < 50 ? 'Евро-2' : apt.area < 90 ? '2-комнатная' : '3-комнатная'
+    // Floorplan template of the same block whose label carries this area (floor range preferred)
+    const areaLabel = apt.area.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    const candidates = FLOORPLAN_TEMPLATES.filter(t =>
+      t.project === project && templateBlocks(t).includes(block) && t.label.includes(areaLabel + ' м²'))
+    const onFloor = candidates.find(t => {
+      const m = t.label.match(/(\d+)(?:–(\d+))? этаж/)
+      if (!m) return false
+      const lo = Number(m[1]), hi = Number(m[2] ?? m[1])
+      return apt.floor >= lo && apt.floor <= hi
+    })
+    const plan = onFloor ?? candidates[0]
+    const savedSitePlan = loadProjectSitePlan(project)
+    const ppm = state.offerPricePerSqm
+    const calc = ppm > 0 ? calcForward(apt.area, ppm, state.downPayment, state.offerMonths || 36) : null
+    update({
+      projectTemplate: project,
+      address: tpl.address,
+      compassOrientation: tpl.compassOrientation,
+      ceilingHeight: tpl.defaultCeilingHeight,
+      block,
+      apartment: apt.apt,
+      floors: String(apt.floor),
+      area: areaStr,
+      type,
+      planImage: plan ? plan.src : null,
+      planLocked: false,
+      offerCalcResult: calc,
+      ...(savedSitePlan ? { customSitePlan: savedSitePlan } : {}),
+      ...NO_VIEW_POINT,
+    })
+    setMode('offer')
+  }
+
+  // ── AVAILABILITY MODE ──
+  if (mode === 'availability') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', minHeight: '-webkit-fill-available' }}>
+        <div style={{
+          backgroundColor: 'white',
+          borderBottom: '1px solid #E5DDD4',
+          padding: '10px 16px',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}>
+          <TabBar mode={mode} onModeChange={setMode} />
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' } as React.CSSProperties}>
+          <AvailabilityView onPick={handlePickApartment} />
+        </div>
+      </div>
+    )
   }
 
   // ── CONDITIONS MODE ──
