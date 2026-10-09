@@ -161,7 +161,9 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
   }
 
   const handleDpChange = (rawValue: string) => {
-    setDpInputStr(rawValue)
+    // Spaces between thousands while typing — «3 000 000», not «3000000»
+    const d = rawValue.replace(/\D/g, '')
+    setDpInputStr(d ? fmtNum(Number(d)) : '')
     const newDP = parseFloat(rawValue.replace(/[\s ]/g, '')) || 0
     if (newDP < 0 || isNaN(newDP)) return
     const calc = syncCalc(area, effectivePpm, newDP, months)
@@ -465,7 +467,7 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
             <input
               type="text"
               inputMode="numeric"
-              value={pricePerSqm > 0 ? String(pricePerSqm) : ''}
+              value={pricePerSqm > 0 ? fmtNum(pricePerSqm) : ''}
               onChange={e => handlePriceChange(e.target.value)}
               placeholder="115 000"
               className="w-full border border-imperial-greige rounded px-3 py-2 text-sm text-imperial-navy focus:outline-none focus:border-imperial-bronze pr-12"

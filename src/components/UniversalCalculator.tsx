@@ -316,8 +316,9 @@ function VariantCard({
           <input
             style={inputStyle}
             type="text"
-            value={variant.pricePerSqm}
-            onChange={e => set({ pricePerSqm: e.target.value })}
+            inputMode="numeric"
+            value={fmtDigits(variant.pricePerSqm)}
+            onChange={e => set({ pricePerSqm: digits(e.target.value) })}
             placeholder="115 000"
           />
         </div>
@@ -449,8 +450,9 @@ function VariantCard({
               <input
                 style={inputStyle}
                 type="text"
-                value={variant.downPayment}
-                onChange={e => set({ downPayment: e.target.value })}
+                inputMode="numeric"
+                value={fmtDigits(variant.downPayment)}
+                onChange={e => set({ downPayment: digits(e.target.value) })}
                 placeholder="1 000 000"
               />
             </div>
@@ -474,8 +476,9 @@ function VariantCard({
               <input
                 style={inputStyle}
                 type="text"
-                value={variant.desiredMonthly}
-                onChange={e => set({ desiredMonthly: e.target.value })}
+                inputMode="numeric"
+                value={fmtDigits(variant.desiredMonthly)}
+                onChange={e => set({ desiredMonthly: digits(e.target.value) })}
                 placeholder="150 000"
               />
             </div>
@@ -651,7 +654,10 @@ export default function UniversalCalculator({ onCreateOffer }: Props) {
     const saved = typeof window !== 'undefined' ? loadCalcVariants() : null
     if (!saved) return [makeVariant('1')]
     nextId = Math.max(nextId, ...saved.map(v => Number(v.id) + 1).filter(n => Number.isFinite(n)))
-    return saved.map(v => ({ ...makeVariant(v.id), ...v }))
+    return saved.map(v => {
+      const x = { ...makeVariant(v.id), ...v }
+      return { ...x, pricePerSqm: digits(x.pricePerSqm), downPayment: digits(x.downPayment), desiredMonthly: digits(x.desiredMonthly) }
+    })
   })
 
   useEffect(() => {

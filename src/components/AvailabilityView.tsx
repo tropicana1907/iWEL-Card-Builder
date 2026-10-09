@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import data from '@/data/availability.json'
 
 // Availability snapshot built from the Bitrix chessboards (scripts/availability).
@@ -45,6 +45,22 @@ const STATUS_STYLE: Record<AptStatus, string> = {
   not_for_sale: 'bg-gray-200 border-gray-200 text-gray-400',
 }
 
+const VIEW_KEY = 'iwel_availability_view'
+function loadView(): { project: AvailabilityProject; block: string | null; size: string } {
+  const fallback = { project: 'imperial' as AvailabilityProject, block: null, size: 'all' }
+  try {
+    const v = JSON.parse(localStorage.getItem(VIEW_KEY) || 'null')
+    if (!v || !PROJECTS.some(p => p.key === v.project)) return fallback
+    return {
+      project: v.project,
+      block: typeof v.block === 'string' ? v.block : null,
+      size: SIZE_FILTERS.some(f => f.key === v.size) ? v.size : 'all',
+    }
+  } catch {
+    return fallback
+  }
+}
+
 const fmtArea = (a: number) => a.toLocaleString('ru-RU', { maximumFractionDigits: 2 })
 const fmtDate = (iso: string) => iso.split('-').reverse().join('.')
 const aptNum = (s: string) => parseFloat(s.replace('/', '.')) || 0
@@ -52,9 +68,14 @@ const aptNum = (s: string) => parseFloat(s.replace('/', '.')) || 0
 export default function AvailabilityView({ onPick }: {
   onPick: (project: AvailabilityProject, apt: AvailabilityApt) => void
 }) {
-  const [project, setProject] = useState<AvailabilityProject>('imperial')
-  const [block, setBlock] = useState<string | null>(null)
-  const [size, setSize] = useState('all')
+  // Remember the last view — the tab unmounts on every switch (owner: «вернулась — а там уже Империал»)
+  const [saved] = useState(loadView)
+  const [project, setProject] = useState<AvailabilityProject>(saved.project)
+  const [block, setBlock] = useState<string | null>(saved.block)
+  const [size, setSize] = useState(saved.size)
+  useEffect(() => {
+    try { localStorage.setItem(VIEW_KEY, JSON.stringify({ project, block, size })) } catch {}
+  }, [project, block, size])
 
   const proj = SNAPSHOT.projects[project]
   const meta = PROJECTS.find(p => p.key === project)!
