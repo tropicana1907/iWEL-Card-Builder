@@ -14,6 +14,7 @@ import { exportToPNG, exportToJPG, exportToPDF, exportForWhatsApp, exportToClipb
 import { saveState, loadState, savePlan, findPlan, saveProjectSitePlan, loadProjectSitePlan, NO_VIEW_POINT } from '@/lib/storage'
 import { getTemplate } from '@/projectTemplates'
 import { CARD_WIDTH, CARD_HEIGHT } from '@/config/card'
+import { useEmbedded } from '@/lib/embedded'
 import type { AppState, CalcVariant, CalcResult, ApartmentType } from '@/types'
 import { imperialTemplate } from '@/projectTemplates/imperial'
 
@@ -124,20 +125,19 @@ const DEFAULT_STATE: AppState = {
   compassOrientation: imperialTemplate.compassOrientation,
 }
 
-// Embedded on iwel.ru/card (Tilda) — its round burger menu floats over the top-right
-// corner on phones and covered «НАЛИЧИЕ». Inside an iframe the tab bar drops below it.
-function useEmbedded() {
-  const [embedded, setEmbedded] = useState(false)
-  useEffect(() => {
-    try { setEmbedded(window.self !== window.top) } catch { setEmbedded(true) }
-  }, [])
-  return embedded
-}
-
+// Embedded on iwel.ru/card (Tilda) on a phone: Tilda's round burger menu floats over the
+// top-right corner. The navy brand header goes on top (the burger sits on it), tabs below.
 function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMode) => void }) {
   const embedded = useEmbedded()
   return (
-    <div className={`flex gap-1 lg:gap-1.5 w-full lg:w-auto ${embedded ? 'mt-14 lg:mt-0' : ''}`}>
+    <div className="w-full lg:w-auto">
+    {embedded && (
+      <div className="lg:hidden -mx-4 -mt-2.5 mb-2.5 h-[72px] bg-imperial-navy border-b-2 border-imperial-bronze px-4 flex flex-col justify-center pr-20">
+        <div className="text-white font-display text-lg tracking-[0.25em] leading-none">iWEL</div>
+        <div className="text-imperial-bronze text-[9px] tracking-[0.2em] mt-1.5 uppercase leading-tight">Конструктор коммерческого предложения · 2.0</div>
+      </div>
+    )}
+    <div className="flex gap-1 lg:gap-1.5 w-full lg:w-auto">
       <button
         onClick={() => onModeChange('offer')}
         className={`flex-1 min-w-0 lg:flex-none px-0.5 lg:px-4 py-1.5 text-[10px] sm:text-[11px] lg:text-xs leading-tight font-bold rounded tracking-normal lg:tracking-wide transition-colors border
@@ -191,6 +191,7 @@ function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMo
       >
         НАЛИЧИЕ
       </button>
+    </div>
     </div>
   )
 }

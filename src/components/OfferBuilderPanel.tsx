@@ -3,6 +3,7 @@
 import { useRef, useState, useEffect } from 'react'
 import type { AppState, ProjectPreset, CompassOrientation } from '@/types'
 import { fmt, parseArea, calcForward, suggestDownPayment } from '@/lib/calculator'
+import { useEmbedded } from '@/lib/embedded'
 import { APARTMENT_TYPES } from '@/config/constants'
 import { imperialTemplate } from '@/projectTemplates/imperial'
 import { towersTemplate } from '@/projectTemplates/towers'
@@ -50,6 +51,7 @@ const COMPASS_PRESETS: Record<string, CompassOrientation & { label: string }> = 
 
 export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEditor, onBack, onMsg }: Props) {
   const planFileRef = useRef<HTMLInputElement>(null)
+  const embedded = useEmbedded()
   const area = parseArea(state.area)
   const locked = state.productionLock
 
@@ -196,7 +198,8 @@ export default function OfferBuilderPanel({ state, onChange, onOpenSitePlanEdito
   return (
     <aside className="w-full lg:w-[380px] lg:h-full bg-white border-r border-imperial-greige flex flex-col overflow-hidden shadow-lg flex-shrink-0">
       {/* Header */}
-      <div className="bg-imperial-navy px-5 py-4 flex-shrink-0 border-b-2 border-imperial-bronze">
+      {/* Embedded on a phone the same header sits above the tabs (see TabBar) */}
+      <div className={`bg-imperial-navy px-5 py-4 flex-shrink-0 border-b-2 border-imperial-bronze ${embedded ? 'hidden lg:block' : ''}`}>
         <div className="text-white font-display text-xl tracking-[0.25em]">iWEL</div>
         <div className="text-imperial-bronze text-xs tracking-[0.3em] mt-1 uppercase">Конструктор коммерческого предложения · 2.0</div>
       </div>
