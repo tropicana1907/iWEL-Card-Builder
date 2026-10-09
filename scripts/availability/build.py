@@ -46,6 +46,9 @@ BLOCK_STATUS = {
             'free': {'1', '4/2', '46', '60', '24/2', '25', '28/2', '75', '32/2', '80'},
             'columns': [75.59, 48.54, 93.36, 45.3, 26.95, 26.68, 76.1, 53.45, 52.6, 32.23, 25.55],
             'closed_floors': {11, 12},
+            # Стояки, поделённые на две квартиры (45,3 + 26,95 и 52,6 + 32,23): если в шахматке у большой
+            # нет номера, номер соседки делим на /1 и /2, как кв. 4/1 и 4/2
+            'pairs': [(3, 4), (8, 9)],
         },
         '5': {  # шахматка блока 5 от 09.10.2026; кв. 150 (жёлтая) снята с продажи
             'free': {12, 13, 26, 65, 73, 92, 102, 104, 105, 115, 119, 125, 126, 131, 140,
@@ -93,7 +96,15 @@ def apply_block_status(proj, apts):
         for fl in floors:
             have = {a['ord'] for a in out if a['block'] == block and a['floor'] == fl}
             for i, area in enumerate(cols):
-                if i not in have:
+                if i in have:
+                    continue
+                pair = next((p for p in r.get('pairs', ()) if p[0] == i), None)
+                mate = pair and next((a for a in out if a['block'] == block and a['floor'] == fl and a.get('ord') == pair[1]), None)
+                if mate and '/' not in mate['apt']:
+                    n = mate['apt']
+                    mate['apt'] = f'{n}/2'
+                    out.append({**mate, 'apt': f'{n}/1', 'area': area, 'ord': i})
+                else:
                     out.append({'block': block, 'floor': fl, 'apt': '', 'area': area, 'status': 'sold', 'ord': i, 'hide': True})
     return out
 
