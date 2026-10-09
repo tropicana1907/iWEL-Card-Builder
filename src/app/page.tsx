@@ -124,9 +124,20 @@ const DEFAULT_STATE: AppState = {
   compassOrientation: imperialTemplate.compassOrientation,
 }
 
+// Embedded on iwel.ru/card (Tilda) — its round burger menu floats over the top-right
+// corner on phones and covered «НАЛИЧИЕ». Inside an iframe the tab bar drops below it.
+function useEmbedded() {
+  const [embedded, setEmbedded] = useState(false)
+  useEffect(() => {
+    try { setEmbedded(window.self !== window.top) } catch { setEmbedded(true) }
+  }, [])
+  return embedded
+}
+
 function TabBar({ mode, onModeChange }: { mode: AppMode; onModeChange: (m: AppMode) => void }) {
+  const embedded = useEmbedded()
   return (
-    <div className="flex gap-1 lg:gap-1.5 w-full lg:w-auto">
+    <div className={`flex gap-1 lg:gap-1.5 w-full lg:w-auto ${embedded ? 'mt-14 lg:mt-0' : ''}`}>
       <button
         onClick={() => onModeChange('offer')}
         className={`flex-1 min-w-0 lg:flex-none px-0.5 lg:px-4 py-1.5 text-[10px] sm:text-[11px] lg:text-xs leading-tight font-bold rounded tracking-normal lg:tracking-wide transition-colors border
