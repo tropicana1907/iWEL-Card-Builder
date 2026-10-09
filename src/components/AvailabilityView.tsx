@@ -13,6 +13,8 @@ export interface AvailabilityApt {
   apt: string
   area: number
   status: AptStatus
+  // Position №1–7 on floors with their own plans (matches the floorplan template «№N»)
+  pos?: number
 }
 export type AvailabilityProject = 'imperial' | 'towers'
 

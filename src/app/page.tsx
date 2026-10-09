@@ -349,7 +349,14 @@ export default function HomePage() {
       const lo = Number(m[1]), hi = Number(m[2] ?? m[1])
       return apt.floor >= lo && apt.floor <= hi
     })
-    const plan = onFloor ?? candidates[0]
+    const onFloorAll = candidates.filter(t => {
+      const m = t.label.match(/(\d+)(?:–(\d+))? этаж/)
+      if (!m) return false
+      const lo = Number(m[1]), hi = Number(m[2] ?? m[1])
+      return apt.floor >= lo && apt.floor <= hi
+    })
+    const byPos = apt.pos ? onFloorAll.find(t => t.label.includes(`№${apt.pos} ·`)) : undefined
+    const plan = byPos ?? onFloor ?? candidates[0]
     const savedSitePlan = loadProjectSitePlan(project)
     const ppm = state.offerPricePerSqm
     const calc = ppm > 0 ? calcForward(apt.area, ppm, state.downPayment, state.offerMonths || 36) : null
