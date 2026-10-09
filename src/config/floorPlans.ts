@@ -18,7 +18,7 @@ export interface PlanPosition {
 export interface SideInfo {
   label: string
   sea?: boolean
-  blank?: boolean // blind wall — no windows on this side
+  blank?: boolean // blind end wall — no windows on this side (label, if any, is orientation only)
 }
 
 export interface FloorPlan {
@@ -50,23 +50,25 @@ const TOWERS_123: FloorPlan = {
   ],
   sides: {
     '2': {
+      // Windows only on the two long facades; both end walls are blind (sales lead, 09.10.2026).
+      // End-wall labels stay as orientation only — they give no window view.
       top: { label: 'Море', sea: true },
-      right: { label: 'ул. Кобякина' },
+      right: { label: 'ул. Кобякина', blank: true },
       bottom: { label: 'Линейная ул. · вход' },
-      left: { label: 'Духовный центр' },
+      left: { label: 'Духовный центр', blank: true },
     },
     '1': {
-      top: { label: 'Двор, к корпусу C' },
-      // Buildings 1 and 3 stand side-on to the sea: that side is a blind wall (sales lead, 09.10.2026)
-      right: { label: 'Море · глухая стена, окон нет', blank: true },
+      top: { label: 'Духовный центр · корпус C' },
+      // Buildings 1 and 3 stand side-on to the sea: a blind wall, left unlabelled (sales lead, 09.10.2026)
+      right: { label: '', blank: true },
       bottom: { label: 'Двор, к корпусу 2 · вход' },
-      left: { label: 'Линейная ул.' },
+      left: { label: 'Линейная ул.', blank: true },
     },
     '3': {
-      top: { label: 'ул. Кобякина' },
-      right: { label: 'Линейная ул.' },
-      bottom: { label: 'Двор, к корпусу 2 · вход' },
-      left: { label: 'Море · глухая стена, окон нет', blank: true },
+      top: { label: 'ул. Кобякина · боковой вид на море и горы (зависит от этажа)' },
+      right: { label: 'Линейная ул.', blank: true },
+      bottom: { label: 'Духовный центр · внутренний двор · вход' },
+      left: { label: '', blank: true },
     },
   },
 }
