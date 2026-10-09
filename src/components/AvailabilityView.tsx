@@ -46,6 +46,12 @@ const STATUS_STYLE: Record<AptStatus, string> = {
   not_for_sale: 'bg-gray-200 border-gray-200 text-gray-400',
 }
 
+// On the floor plan the apartments on sale wear the iWEL brand blue (iwel.ru: #5287E4)
+const PLAN_STATUS_STYLE: Record<AptStatus, string> = {
+  ...STATUS_STYLE,
+  free: 'bg-[#5287E4] border-[#5287E4] text-white hover:bg-[#3f72cc] hover:border-[#3f72cc] cursor-pointer',
+}
+
 const VIEW_KEY = 'iwel_availability_view'
 function loadView(): { project: AvailabilityProject; block: string | null; size: string; seaOnly: boolean; floor: number | null } {
   const fallback = { project: 'imperial' as AvailabilityProject, block: null, size: 'all', seaOnly: false, floor: null }
@@ -91,6 +97,8 @@ export default function AvailabilityView({ onPick }: {
   const activeBlock = block !== null && blocks.includes(block) ? block : blocks[0]
   const plan = activeBlock ? floorPlanFor(project, activeBlock) : null
   const isSea = (a: AvailabilityApt) => aptView(project, a.block, a.apt).some(v => v.sea)
+  // The 🌊 mark is shown only on apartments still on sale — sold sea views would upset a client
+  const showSea = (a: AvailabilityApt) => (a.status === 'free' || a.status === 'reserved') && isSea(a)
   const sizeOnly = SIZE_FILTERS.find(f => f.key === size)!.test
   const hasSea = !!plan && !!activeBlock && Object.values(plan.sides[activeBlock] ?? {}).some(sd => sd.sea)
   const sizeTest = (area: number, a?: AvailabilityApt) => sizeOnly(area) && (!hasSea || !seaOnly || !a || isSea(a))
@@ -211,10 +219,10 @@ export default function AvailabilityView({ onPick }: {
                           title={`Кв. ${a.apt} · ${fmtArea(a.area)} м² · окна: ${viewText(a)}`}
                           style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w ?? plan.badge.w}%`, height: `${plan.badge.h}%` }}
                           className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center rounded-md border-2 leading-tight text-center shadow-md
-                            ${STATUS_STYLE[a.status]} ${dim ? 'opacity-40' : ''}`}
+                            ${PLAN_STATUS_STYLE[a.status]} ${dim ? 'opacity-40' : ''}`}
                         >
                           <div className="text-[9px] sm:text-[11px] font-bold whitespace-nowrap">
-                            <span className="hidden sm:inline">{isSea(a) ? '🌊' : ''}№</span>{a.apt}
+                            <span className="hidden sm:inline">{showSea(a) ? '🌊' : ''}№</span>{a.apt}
                           </div>
                           <div className="hidden sm:block text-[10px] whitespace-nowrap">{fmtArea(a.area)} м²</div>
                         </button>
@@ -263,7 +271,7 @@ export default function AvailabilityView({ onPick }: {
                         className={`w-[58px] sm:w-[68px] shrink-0 rounded border px-1 py-1 text-left leading-tight transition-colors
                           ${STATUS_STYLE[a.status]} ${dim ? 'opacity-30' : ''}`}
                       >
-                        <div className="text-[11px] font-semibold">№{a.apt}{plan && isSea(a) ? ' 🌊' : ''}</div>
+                        <div className="text-[11px] font-semibold">№{a.apt}{plan && showSea(a) ? ' 🌊' : ''}</div>
                         <div className="text-[10px]">{fmtArea(a.area)} м²</div>
                       </button>
                     )
