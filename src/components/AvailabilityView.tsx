@@ -198,7 +198,7 @@ export default function AvailabilityView({ onPick }: {
               const sideCls = (s: { sea?: boolean }) => `text-[10px] sm:text-xs font-semibold tracking-wide ${s.sea ? 'text-sky-700' : 'text-gray-500'}`
               const onFloor = inBlock.filter(a => a.floor === shownFloor)
               return (
-                <div className="grid grid-cols-[18px_1fr_18px] sm:grid-cols-[24px_1fr_24px] grid-rows-[auto_1fr_auto] gap-1 items-center">
+                <div className="grid grid-cols-[18px_1fr_18px] sm:grid-cols-[22px_1fr_22px] grid-rows-[auto_1fr_auto] gap-1 items-center w-full sm:max-w-[640px] mx-auto">
                   <div />
                   <div className={`text-center ${sideCls(sides.top)}`}>{sides.top.sea ? '🌊 ' : '↑ '}{sides.top.label}</div>
                   <div />
@@ -218,13 +218,13 @@ export default function AvailabilityView({ onPick }: {
                           onClick={() => clickable && onPick(project, a)}
                           title={`Кв. ${a.apt} · ${fmtArea(a.area)} м² · окна: ${viewText(a)}`}
                           style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w ?? plan.badge.w}%`, height: `${plan.badge.h}%` }}
-                          className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center rounded sm:rounded-md border sm:border-2 leading-tight text-center shadow-md min-w-[29px] min-h-[23px] px-0.5 sm:px-0
+                          className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center rounded sm:rounded-md border sm:border-2 leading-tight text-center shadow-md min-w-[29px] min-h-[23px] sm:min-w-[44px] sm:min-h-[30px] px-0.5
                             ${PLAN_STATUS_STYLE[a.status]} ${dim ? 'opacity-40' : ''}`}
                         >
-                          <div className="text-[9px] sm:text-[11px] font-bold whitespace-nowrap leading-none sm:leading-tight">
+                          <div className="text-[9px] sm:text-[10px] font-bold whitespace-nowrap leading-none sm:leading-tight">
                             <span className="hidden sm:inline">{showSea(a) ? '🌊' : ''}№</span>{a.apt}
                           </div>
-                          <div className="text-[7.5px] sm:text-[10px] leading-none sm:leading-tight whitespace-nowrap mt-px">
+                          <div className="text-[7.5px] sm:text-[9px] leading-none sm:leading-tight whitespace-nowrap mt-px">
                             {fmtArea(a.area)}<span className="hidden sm:inline"> м²</span>
                           </div>
                         </button>
