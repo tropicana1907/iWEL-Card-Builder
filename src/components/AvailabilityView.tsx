@@ -218,13 +218,15 @@ export default function AvailabilityView({ onPick }: {
                           onClick={() => clickable && onPick(project, a)}
                           title={`Кв. ${a.apt} · ${fmtArea(a.area)} м² · окна: ${viewText(a)}`}
                           style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w ?? plan.badge.w}%`, height: `${plan.badge.h}%` }}
-                          className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center rounded-md border-2 leading-tight text-center shadow-md
+                          className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center rounded sm:rounded-md border sm:border-2 leading-tight text-center shadow-md min-w-[29px] min-h-[23px] px-0.5 sm:px-0
                             ${PLAN_STATUS_STYLE[a.status]} ${dim ? 'opacity-40' : ''}`}
                         >
-                          <div className="text-[9px] sm:text-[11px] font-bold whitespace-nowrap">
+                          <div className="text-[9px] sm:text-[11px] font-bold whitespace-nowrap leading-none sm:leading-tight">
                             <span className="hidden sm:inline">{showSea(a) ? '🌊' : ''}№</span>{a.apt}
                           </div>
-                          <div className="hidden sm:block text-[10px] whitespace-nowrap">{fmtArea(a.area)} м²</div>
+                          <div className="text-[7.5px] sm:text-[10px] leading-none sm:leading-tight whitespace-nowrap mt-px">
+                            {fmtArea(a.area)}<span className="hidden sm:inline"> м²</span>
+                          </div>
                         </button>
                       )
                     })}

@@ -34,15 +34,15 @@ const TOWERS_123: FloorPlan = {
   image: `${BASE}/templates/floorplans-floor/towers-b123-floor.webp`,
   aspect: 910 / 518,
   perFloor: 10,
-  // Badge boxes cover the drawn number circle + area pill (areas come from the chessboard)
-  badge: { w: 10.2, h: 12.4 },
+  // The drawn number circles were removed from the image; compact badges sit in their place
+  badge: { w: 6.6, h: 8.6 },
   positions: [
     { pos: 1, x: 31.2, y: 81.5, sides: ['bottom'] },
     { pos: 2, x: 15.4, y: 87.5, sides: ['bottom', 'left'] },
     { pos: 3, x: 13.7, y: 33.6, sides: ['top', 'left'] },
-    { pos: 4, x: 32.5, y: 21.4, sides: ['top'], w: 12.6 },
-    { pos: 5, x: 44.6, y: 18.7, sides: ['top'], w: 8.8 },
-    { pos: 6, x: 53.6, y: 18.7, sides: ['top'], w: 8.8 },
+    { pos: 4, x: 32.5, y: 21.4, sides: ['top'] },
+    { pos: 5, x: 44.6, y: 18.7, sides: ['top'], w: 6.2 },
+    { pos: 6, x: 53.6, y: 18.7, sides: ['top'], w: 6.2 },
     { pos: 7, x: 68.5, y: 21.4, sides: ['top'] },
     { pos: 8, x: 84.8, y: 33.6, sides: ['top', 'right'] },
     { pos: 9, x: 83.2, y: 87.5, sides: ['bottom', 'right'] },
