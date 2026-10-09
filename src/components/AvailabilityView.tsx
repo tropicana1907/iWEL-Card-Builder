@@ -16,6 +16,8 @@ export interface AvailabilityApt {
   status: AptStatus
   // Position №1–7 on floors with their own plans (matches the floorplan template «№N»)
   pos?: number
+  ord?: number // column (riser) on the floor, when the chessboard numbering doesn't give it
+  hide?: boolean // closed floor / riser without a number — grey cell, no number or area
 }
 export type AvailabilityProject = 'imperial' | 'towers'
 
@@ -245,7 +247,8 @@ export default function AvailabilityView({ onPick }: {
         <div className="bg-white rounded-lg border border-imperial-greige p-2 sm:p-3 overflow-x-auto">
           <div className="min-w-max space-y-1">
             {floors.map(fl => {
-              const apts = inBlock.filter(a => a.floor === fl).sort((a, b) => aptNum(a.apt) - aptNum(b.apt))
+              const apts = inBlock.filter(a => a.floor === fl)
+                .sort((a, b) => (a.ord ?? aptNum(a.apt)) - (b.ord ?? aptNum(b.apt)))
               return (
                 <div key={fl} className="flex items-stretch gap-1">
                   {plan ? (
@@ -260,7 +263,10 @@ export default function AvailabilityView({ onPick }: {
                   ) : (
                     <div className="w-10 shrink-0 text-[11px] text-gray-500 flex items-center justify-end pr-1">{fl} эт</div>
                   )}
-                  {apts.map(a => {
+                  {apts.map((a, i) => {
+                    if (a.hide) {
+                      return <div key={`h-${fl}-${i}`} title="Не продаётся" className="w-[58px] sm:w-[68px] shrink-0 rounded border border-gray-200 bg-gray-200" />
+                    }
                     const dim = a.status === 'free' && !sizeTest(a.area, a)
                     const clickable = a.status === 'free' || a.status === 'reserved'
                     const view = viewText(a)
