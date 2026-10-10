@@ -8,7 +8,7 @@ import SitePlanEditor from '@/components/SitePlanEditor'
 import PricingConditions from '@/components/PricingConditions'
 import PrepaymentCalculator from '@/components/PrepaymentCalculator'
 import AvailabilityView, { type AvailabilityApt, type AvailabilityProject } from '@/components/AvailabilityView'
-import { FLOORPLAN_TEMPLATES, templateBlocks } from '@/config/templateAssets'
+import { findAptPlan } from '@/lib/aptPlan'
 import { calculatePrices, parseArea, calcForward } from '@/lib/calculator'
 import { exportToPNG, exportToJPG, exportToPDF, exportForWhatsApp, exportToClipboard } from '@/lib/export'
 import { saveState, loadState, savePlan, findPlan, saveProjectSitePlan, loadProjectSitePlan, NO_VIEW_POINT } from '@/lib/storage'
@@ -351,24 +351,7 @@ export default function HomePage() {
     const block = parseInt(apt.block, 10) || state.block
     const areaStr = String(apt.area)
     const type: ApartmentType = apt.area < 30 ? 'Студия' : apt.area < 50 ? 'Евро-2' : apt.area < 90 ? '2-комнатная' : '3-комнатная'
-    // Floorplan template of the same block whose label carries this area (floor range preferred)
-    const areaLabel = apt.area.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    const candidates = FLOORPLAN_TEMPLATES.filter(t =>
-      t.project === project && templateBlocks(t).includes(block) && t.label.includes(areaLabel + ' м²'))
-    const onFloor = candidates.find(t => {
-      const m = t.label.match(/(\d+)(?:–(\d+))? этаж/)
-      if (!m) return false
-      const lo = Number(m[1]), hi = Number(m[2] ?? m[1])
-      return apt.floor >= lo && apt.floor <= hi
-    })
-    const onFloorAll = candidates.filter(t => {
-      const m = t.label.match(/(\d+)(?:–(\d+))? этаж/)
-      if (!m) return false
-      const lo = Number(m[1]), hi = Number(m[2] ?? m[1])
-      return apt.floor >= lo && apt.floor <= hi
-    })
-    const byPos = apt.pos ? onFloorAll.find(t => t.label.includes(`№${apt.pos} ·`)) : undefined
-    const plan = byPos ?? onFloor ?? candidates[0]
+    const plan = findAptPlan(project, apt, state.block)
     const savedSitePlan = loadProjectSitePlan(project)
     const ppm = state.offerPricePerSqm
     const calc = ppm > 0 ? calcForward(apt.area, ppm, state.downPayment, state.offerMonths || 36) : null

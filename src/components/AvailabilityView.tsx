@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import data from '@/data/availability.json'
 import { floorPlanFor, planPosition, aptView } from '@/config/floorPlans'
+import { findAptPlan } from '@/lib/aptPlan'
 
 // Availability snapshot built from the Bitrix chessboards (scripts/availability).
 // Only apartment number, block, floor, area and status — no buyer data.
@@ -89,6 +90,37 @@ export default function AvailabilityView({ onPick }: {
   useEffect(() => {
     try { localStorage.setItem(VIEW_KEY, JSON.stringify({ project, block, size, seaOnly, floor: planFloor })) } catch {}
   }, [project, block, size, seaOnly, planFloor])
+
+  // Small floorplan of an apartment on sale: pops up on hover (mouse), or as a card on the first tap (touch)
+  const [preview, setPreview] = useState<{ a: AvailabilityApt; rect: DOMRect; touch: boolean } | null>(null)
+  const [touch, setTouch] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: none)')
+    setTouch(mq.matches)
+    const on = () => setTouch(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [])
+  useEffect(() => setPreview(null), [project, block])
+  const previewSrc = preview ? findAptPlan(project, preview.a)?.src : undefined
+  const aptHandlers = (a: AvailabilityApt) => {
+    const clickable = a.status === 'free' || a.status === 'reserved'
+    if (!clickable) return {}
+    return {
+      onMouseEnter: (e: React.MouseEvent<HTMLElement>) => {
+        if (!touch) setPreview({ a, rect: e.currentTarget.getBoundingClientRect(), touch: false })
+      },
+      onMouseLeave: () => { if (!touch) setPreview(null) },
+      onClick: (e: React.MouseEvent<HTMLElement>) => {
+        // On a phone the first tap shows the plan; «Сделать КП» on the card opens the offer
+        if (touch && findAptPlan(project, a) && preview?.a !== a) {
+          setPreview({ a, rect: e.currentTarget.getBoundingClientRect(), touch: true })
+          return
+        }
+        onPick(project, a)
+      },
+    }
+  }
 
   const proj = SNAPSHOT.projects[project]
   const meta = PROJECTS.find(p => p.key === project)!
@@ -217,8 +249,8 @@ export default function AvailabilityView({ onPick }: {
                         <button
                           key={a.apt}
                           disabled={!clickable}
-                          onClick={() => clickable && onPick(project, a)}
-                          title={`Кв. ${a.apt} · ${fmtArea(a.area)} м² · окна: ${viewText(a)}`}
+                          {...aptHandlers(a)}
+                          title={touch || findAptPlan(project, a) ? undefined : `Кв. ${a.apt} · ${fmtArea(a.area)} м² · окна: ${viewText(a)}`}
                           style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w ?? plan.badge.w}%`, height: `${plan.badge.h}%` }}
                           className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center rounded sm:rounded-md border sm:border-2 leading-tight text-center shadow-md min-w-[29px] min-h-[23px] sm:min-w-[44px] sm:min-h-[30px] px-0.5
                             ${PLAN_STATUS_STYLE[a.status]} ${dim ? 'opacity-40' : ''}`}
@@ -274,8 +306,8 @@ export default function AvailabilityView({ onPick }: {
                       <button
                         key={a.apt + '-' + a.floor}
                         disabled={!clickable}
-                        onClick={() => clickable && onPick(project, a)}
-                        title={`Кв. ${a.apt} · ${fmtArea(a.area)} м² · ${fl} этаж${view ? ` · окна: ${view}` : ''}`}
+                        {...aptHandlers(a)}
+                        title={clickable && findAptPlan(project, a) ? undefined : `Кв. ${a.apt} · ${fmtArea(a.area)} м² · ${fl} этаж${view ? ` · окна: ${view}` : ''}`}
                         className={`w-[58px] sm:w-[68px] shrink-0 rounded border px-1 py-1 text-left leading-tight transition-colors
                           ${STATUS_STYLE[a.status]} ${dim ? 'opacity-30' : ''}`}
                       >
@@ -298,6 +330,42 @@ export default function AvailabilityView({ onPick }: {
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-200" />Не продаётся</span>
           {hasSea && <span className="flex items-center gap-1">🌊 Окна на море</span>}
         </div>
+        {preview && previewSrc && !preview.touch && (() => {
+          // Hover card next to the cell: above it when there is room, else below
+          const W = 300, H = 320, r = preview.rect
+          const left = Math.min(Math.max(r.left + r.width / 2 - W / 2, 8), window.innerWidth - W - 8)
+          const top = r.top - H - 8 > 8 ? r.top - H - 8 : Math.min(r.bottom + 8, window.innerHeight - H - 8)
+          return (
+            <div className="fixed z-50 pointer-events-none bg-white rounded-lg border border-imperial-greige shadow-xl p-2" style={{ left, top, width: W }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewSrc} alt={`Планировка кв. ${preview.a.apt}`} className="w-full h-[260px] object-contain" />
+              <div className="mt-1 text-xs text-imperial-navy font-semibold">Кв. {preview.a.apt} · {fmtArea(preview.a.area)} м² · {preview.a.floor} этаж</div>
+              {viewText(preview.a) && <div className="text-[11px] text-gray-500">окна: {viewText(preview.a)}</div>}
+            </div>
+          )
+        })()}
+        {preview && previewSrc && preview.touch && (
+          <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30" onClick={() => setPreview(null)}>
+            <div className="w-full max-w-sm m-3 bg-white rounded-xl shadow-2xl p-3" onClick={e => e.stopPropagation()}>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <div className="text-sm text-imperial-navy font-semibold">Кв. {preview.a.apt} · {fmtArea(preview.a.area)} м² · {preview.a.floor} этаж</div>
+                  {viewText(preview.a) && <div className="text-[11px] text-gray-500">окна: {viewText(preview.a)}</div>}
+                </div>
+                <button onClick={() => setPreview(null)} aria-label="Закрыть" className="text-gray-400 text-xl leading-none px-1">×</button>
+              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={previewSrc} alt={`Планировка кв. ${preview.a.apt}`} className="w-full h-[260px] object-contain my-2" />
+              <button
+                onClick={() => { const a = preview.a; setPreview(null); onPick(project, a) }}
+                className="w-full rounded-lg bg-imperial-navy text-white text-sm font-semibold py-2.5"
+              >
+                Сделать КП
+              </button>
+            </div>
+          </div>
+        )}
+
         <p className="text-[11px] text-gray-400 mt-2">
           Статус взят из шахматки в Битриксе на дату выше. Перед бронью уточните у отдела продаж.
         </p>
