@@ -113,7 +113,7 @@ export default function AvailabilityView({ onPick }: {
       onMouseLeave: () => { if (!touch) setPreview(null) },
       onClick: (e: React.MouseEvent<HTMLElement>) => {
         // On a phone the first tap shows the plan; «Сделать КП» on the card opens the offer
-        if (touch && findAptPlan(project, a) && preview?.a !== a) {
+        if (touch && (findAptPlan(project, a) || a.status === 'reserved') && preview?.a !== a) {
           setPreview({ a, rect: e.currentTarget.getBoundingClientRect(), touch: true })
           return
         }
@@ -330,7 +330,7 @@ export default function AvailabilityView({ onPick }: {
           <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-200" />Не продаётся</span>
           {hasSea && <span className="flex items-center gap-1">🌊 Окна на море</span>}
         </div>
-        {preview && previewSrc && !preview.touch && (() => {
+        {preview && (previewSrc || preview.a.status === 'reserved') && !preview.touch && (() => {
           // Hover card next to the cell: above it when there is room, else below
           const W = 300, H = 320, r = preview.rect
           const left = Math.min(Math.max(r.left + r.width / 2 - W / 2, 8), window.innerWidth - W - 8)
@@ -338,24 +338,26 @@ export default function AvailabilityView({ onPick }: {
           return (
             <div className="fixed z-50 pointer-events-none bg-white rounded-lg border border-imperial-greige shadow-xl p-2" style={{ left, top, width: W }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previewSrc} alt={`Планировка кв. ${preview.a.apt}`} className="w-full h-[260px] object-contain" />
+              {previewSrc && <img src={previewSrc} alt={`Планировка кв. ${preview.a.apt}`} className="w-full h-[260px] object-contain" />}
               <div className="mt-1 text-xs text-imperial-navy font-semibold">Кв. {preview.a.apt} · {fmtArea(preview.a.area)} м² · {preview.a.floor} этаж</div>
+              {preview.a.status === 'reserved' && <div className="mt-0.5 inline-block rounded bg-amber-100 text-amber-800 text-[11px] font-semibold px-1.5 py-0.5">Забронирована</div>}
               {viewText(preview.a) && <div className="text-[11px] text-gray-500">окна: {viewText(preview.a)}</div>}
             </div>
           )
         })()}
-        {preview && previewSrc && preview.touch && (
+        {preview && (previewSrc || preview.a.status === 'reserved') && preview.touch && (
           <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30" onClick={() => setPreview(null)}>
             <div className="w-full max-w-sm m-3 bg-white rounded-xl shadow-2xl p-3" onClick={e => e.stopPropagation()}>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="text-sm text-imperial-navy font-semibold">Кв. {preview.a.apt} · {fmtArea(preview.a.area)} м² · {preview.a.floor} этаж</div>
+                  {preview.a.status === 'reserved' && <div className="mt-0.5 inline-block rounded bg-amber-100 text-amber-800 text-[11px] font-semibold px-1.5 py-0.5">Забронирована</div>}
                   {viewText(preview.a) && <div className="text-[11px] text-gray-500">окна: {viewText(preview.a)}</div>}
                 </div>
                 <button onClick={() => setPreview(null)} aria-label="Закрыть" className="text-gray-400 text-xl leading-none px-1">×</button>
               </div>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previewSrc} alt={`Планировка кв. ${preview.a.apt}`} className="w-full h-[260px] object-contain my-2" />
+              {previewSrc && <img src={previewSrc} alt={`Планировка кв. ${preview.a.apt}`} className="w-full h-[260px] object-contain my-2" />}
               <button
                 onClick={() => { const a = preview.a; setPreview(null); onPick(project, a) }}
                 className="w-full rounded-lg bg-imperial-navy text-white text-sm font-semibold py-2.5"
