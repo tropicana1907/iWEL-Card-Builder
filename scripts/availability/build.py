@@ -31,7 +31,7 @@ FLOOR_OVERRIDES = {
 # При следующем «обнови шахматки» сверить с файлом и удалить, если файл уже актуален.
 BLOCK_STATUS = {
     'towers': {
-        '2': {'free': {119, 122, 123, 129, 152, 156, 159}},  # шахматка корпуса 2 от 09.10.2026: свободны только белые
+        '2': {'free': {119, 122, 123, 129, 152}, 'reserved': {156, 159}},  # корпус 2 от 12.10.2026: белые свободны, зелёные — бронь
         '3': {'free': {18, 153, 154, 155, 157, 158, 159}},  # корпус 3 от 09.10.2026
         '5': {  # шахматка корпуса 5 от 09.10.2026: свободны только белые
             'free': {8, 12, 14, 18, 21, 26, 28, 29, 33, 35, 36, 40, 42, 56, 64, 77, 80, 85, 87, 99, 101},
@@ -80,7 +80,9 @@ def apply_block_status(proj, apts):
         r = rules.get(a['block'])
         if r:
             key = a['apt'] if isinstance(next(iter(r['free'])), str) else int(re.sub(r'\D', '', a['apt']) or 0)
-            if a['floor'] in r.get('closed_floors', ()):
+            if key in r.get('reserved', ()):
+                a = {**a, 'status': 'reserved'}
+            elif a['floor'] in r.get('closed_floors', ()):
                 a = {**a, 'status': 'not_for_sale', 'hide': True}
             elif a['status'] != 'reserved' or key in r['free']:  # бронь сохраняем, если квартиру не открыли явно
                 a = {**a, 'status': 'not_for_sale' if a['floor'] == 1 else ('free' if key in r['free'] else 'sold')}
