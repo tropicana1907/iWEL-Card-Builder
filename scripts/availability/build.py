@@ -7,7 +7,7 @@ import argparse, json, os, re
 
 RULES = {
     # В Империале весь 1-й этаж — коммерция / не продаётся
-    'imperial': lambda a: {**a, 'status': 'not_for_sale'} if a['floor'] == 1 and a['status'] == 'free' else a,
+    'imperial': lambda a: {**a, 'status': 'not_for_sale'} if a['floor'] == 1 else a,
 }
 
 

@@ -268,24 +268,40 @@ export default function AvailabilityView({ onPick }: {
                       const p = planPosition(plan, a.apt)
                       if (!p) return null
                       const clickable = a.status === 'free' || a.status === 'reserved'
+                      const onSale = clickable
                       const dim = a.status === 'free' && !sizeTest(a.area, a)
+                      if (compact && !onSale) {
+                        // Dense plan: the drawing already carries the number and area — sold ones are just greyed out
+                        return (
+                          <div
+                            key={a.apt}
+                            title={`Кв. ${a.apt} · продана`}
+                            style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w ?? plan.badge.w}%`, height: `${plan.badge.h}%` }}
+                            className="absolute -translate-x-1/2 -translate-y-1/2 rounded bg-gray-500/45"
+                          />
+                        )
+                      }
                       return (
                         <button
                           key={a.apt}
                           disabled={!clickable}
                           {...aptHandlers(a)}
                           title={touch || findAptPlan(project, a) ? undefined : `Кв. ${a.apt} · ${fmtArea(a.area)} м² · окна: ${viewText(a)}`}
-                          style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w ?? plan.badge.w}%`, height: `${plan.badge.h}%` }}
+                          style={compact
+                            ? { left: `${onSale && p.cx !== undefined ? p.cx : p.x}%`, top: `${onSale && p.cy !== undefined ? p.cy : p.y}%` }
+                            : { left: `${p.x}%`, top: `${p.y}%`, width: `${p.w ?? plan.badge.w}%`, height: `${plan.badge.h}%` }}
                           className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center rounded sm:rounded-md border sm:border-2 leading-tight text-center shadow-md px-0.5
-                            ${compact ? 'min-w-[22px] min-h-[18px] sm:min-w-[36px] sm:min-h-[24px]' : 'min-w-[29px] min-h-[23px] sm:min-w-[44px] sm:min-h-[30px]'}
+                            ${compact ? 'px-1 py-0.5 sm:px-1.5 z-10' : 'min-w-[29px] min-h-[23px] sm:min-w-[44px] sm:min-h-[30px]'}
                             ${PLAN_STATUS_STYLE[a.status]} ${dim ? 'opacity-40' : ''}`}
                         >
                           <div className={`${compact ? 'text-[7px] sm:text-[9px]' : 'text-[9px] sm:text-[10px]'} font-bold whitespace-nowrap leading-none sm:leading-tight`}>
                             <span className="hidden sm:inline">{showSea(a) ? '🌊' : ''}№</span>{a.apt}
                           </div>
-                          <div className={`${compact ? 'text-[6px] sm:text-[7.5px]' : 'text-[7.5px] sm:text-[9px]'} leading-none sm:leading-tight whitespace-nowrap mt-px`}>
-                            {fmtArea(a.area)}<span className="hidden sm:inline"> м²</span>
-                          </div>
+                          {(!compact || onSale) && (
+                            <div className={`${compact ? 'text-[6px] sm:text-[7.5px]' : 'text-[7.5px] sm:text-[9px]'} leading-none sm:leading-tight whitespace-nowrap mt-px`}>
+                              {fmtArea(a.area)}<span className="hidden sm:inline"> м²</span>
+                            </div>
+                          )}
                         </button>
                       )
                     })}
