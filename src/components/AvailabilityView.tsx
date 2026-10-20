@@ -253,6 +253,8 @@ export default function AvailabilityView({ onPick }: {
               const sides = plan.sides[activeBlock!]
               const sideCls = (s: { sea?: boolean }) => `text-[10px] sm:text-xs font-semibold tracking-wide ${s.sea ? 'text-sky-700' : 'text-gray-500'}`
               const onFloor = inBlock.filter(a => a.floor === shownFloor)
+              // Dense plans (25 apartments a floor) get smaller badges so the drawing stays readable
+              const compact = plan.perFloor > 10
               return (
                 <div className={`grid grid-cols-[18px_1fr_18px] sm:grid-cols-[22px_1fr_22px] grid-rows-[auto_1fr_auto] gap-1 items-center w-full mx-auto ${plan.perFloor > 10 ? 'sm:max-w-[960px]' : 'sm:max-w-[640px]'}`}>
                   <div />
@@ -274,13 +276,14 @@ export default function AvailabilityView({ onPick }: {
                           {...aptHandlers(a)}
                           title={touch || findAptPlan(project, a) ? undefined : `Кв. ${a.apt} · ${fmtArea(a.area)} м² · окна: ${viewText(a)}`}
                           style={{ left: `${p.x}%`, top: `${p.y}%`, width: `${p.w ?? plan.badge.w}%`, height: `${plan.badge.h}%` }}
-                          className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center rounded sm:rounded-md border sm:border-2 leading-tight text-center shadow-md min-w-[29px] min-h-[23px] sm:min-w-[44px] sm:min-h-[30px] px-0.5
+                          className={`absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center rounded sm:rounded-md border sm:border-2 leading-tight text-center shadow-md px-0.5
+                            ${compact ? 'min-w-[22px] min-h-[18px] sm:min-w-[36px] sm:min-h-[24px]' : 'min-w-[29px] min-h-[23px] sm:min-w-[44px] sm:min-h-[30px]'}
                             ${PLAN_STATUS_STYLE[a.status]} ${dim ? 'opacity-40' : ''}`}
                         >
-                          <div className="text-[9px] sm:text-[10px] font-bold whitespace-nowrap leading-none sm:leading-tight">
+                          <div className={`${compact ? 'text-[7px] sm:text-[9px]' : 'text-[9px] sm:text-[10px]'} font-bold whitespace-nowrap leading-none sm:leading-tight`}>
                             <span className="hidden sm:inline">{showSea(a) ? '🌊' : ''}№</span>{a.apt}
                           </div>
-                          <div className="text-[7.5px] sm:text-[9px] leading-none sm:leading-tight whitespace-nowrap mt-px">
+                          <div className={`${compact ? 'text-[6px] sm:text-[7.5px]' : 'text-[7.5px] sm:text-[9px]'} leading-none sm:leading-tight whitespace-nowrap mt-px`}>
                             {fmtArea(a.area)}<span className="hidden sm:inline"> м²</span>
                           </div>
                         </button>
