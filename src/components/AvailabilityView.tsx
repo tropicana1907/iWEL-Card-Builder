@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import data from '@/data/availability.json'
-import { floorPlanFor, planPosition, aptView } from '@/config/floorPlans'
+import { floorPlanFor, floorPlansFor, planPosition, aptView } from '@/config/floorPlans'
 import { findAptPlan } from '@/lib/aptPlan'
 
 // Availability snapshot built from the Bitrix chessboards (scripts/availability).
@@ -20,7 +20,7 @@ export interface AvailabilityApt {
   ord?: number // column (riser) on the floor, when the chessboard numbering doesn't give it
   hide?: boolean // closed floor / riser without a number — grey cell, no number or area
 }
-export type AvailabilityProject = 'imperial' | 'towers'
+export type AvailabilityProject = 'imperial' | 'towers' | 'azur-prime'
 
 interface Snapshot {
   updatedAt: string
@@ -28,9 +28,10 @@ interface Snapshot {
 }
 const SNAPSHOT = data as Snapshot
 
-const PROJECTS: { key: AvailabilityProject; label: string; blockWord: string }[] = [
+const PROJECTS: { key: AvailabilityProject; label: string; blockWord: string; single?: boolean }[] = [
   { key: 'imperial', label: 'Империал', blockWord: 'Блок' },
   { key: 'towers', label: 'Towers', blockWord: 'Корпус' },
+  { key: 'azur-prime', label: 'AZUR Prime', blockWord: 'Корпус', single: true },
 ]
 
 const SIZE_FILTERS: { key: string; label: string; test: (a: number) => boolean }[] = [
@@ -129,12 +130,13 @@ export default function AvailabilityView({ onPick }: {
     [proj],
   )
   const activeBlock = block !== null && blocks.includes(block) ? block : blocks[0]
-  const plan = activeBlock ? floorPlanFor(project, activeBlock) : null
+  // A building may have several plans (AZUR Prime: 3rd floor with terraces, 4–7 typical) — picked by the shown floor
+  const plans = activeBlock ? floorPlansFor(project, activeBlock) : []
   const isSea = (a: AvailabilityApt) => aptView(project, a.block, a.apt).some(v => v.sea)
   // The 🌊 mark is shown only on apartments still on sale — sold sea views would upset a client
   const showSea = (a: AvailabilityApt) => (a.status === 'free' || a.status === 'reserved') && isSea(a)
   const sizeOnly = SIZE_FILTERS.find(f => f.key === size)!.test
-  const hasSea = !!plan && !!activeBlock && Object.values(plan.sides[activeBlock] ?? {}).some(sd => sd.sea)
+  const hasSea = !!plans[0] && !!activeBlock && Object.values(plans[0].sides[activeBlock] ?? {}).some(sd => sd.sea)
   const sizeTest = (area: number, a?: AvailabilityApt) => sizeOnly(area) && (!hasSea || !seaOnly || !a || isSea(a))
   const viewText = (a: AvailabilityApt) => aptView(project, a.block, a.apt).map(v => v.label).join(' + ')
 
@@ -142,10 +144,12 @@ export default function AvailabilityView({ onPick }: {
   const floors = Array.from(new Set(inBlock.map(a => a.floor))).sort((a, b) => b - a)
   const freeCount = (list: AvailabilityApt[]) => list.filter(a => a.status === 'free' && sizeTest(a.area, a)).length
   // Floor shown on the plan: the one picked, else the highest floor with a free apartment
-  const shownFloor = plan
-    ? (planFloor !== null && floors.includes(planFloor) ? planFloor
-      : floors.find(f => inBlock.some(a => a.floor === f && a.status === 'free')) ?? floors[0])
+  const planFloors = floors.filter(f => !!floorPlanFor(project, activeBlock!, f))
+  const shownFloor = plans.length
+    ? (planFloor !== null && planFloors.includes(planFloor) ? planFloor
+      : planFloors.find(f => inBlock.some(a => a.floor === f && a.status === 'free')) ?? planFloors[0] ?? null)
     : null
+  const plan = activeBlock && shownFloor !== null ? floorPlanFor(project, activeBlock, shownFloor) : null
 
   return (
     <div className="min-h-full bg-imperial-beige px-4 py-5 lg:px-10 lg:py-8">
@@ -175,7 +179,7 @@ export default function AvailabilityView({ onPick }: {
         </div>
 
         {/* Blocks */}
-        <div className="flex flex-wrap gap-1.5 mb-3">
+        <div className={`flex flex-wrap gap-1.5 mb-3 ${meta.single ? 'hidden' : ''}`}>
           {blocks.map(b => {
             const n = freeCount((proj?.apartments ?? []).filter(a => a.block === b))
             return (
@@ -203,7 +207,7 @@ export default function AvailabilityView({ onPick }: {
               {f.label}
             </button>
           ))}
-          {plan && activeBlock && Object.values(plan.sides[activeBlock] ?? {}).some(sd => sd.sea) && (
+          {hasSea && (
             <button
               onClick={() => setSeaOnly(v => !v)}
               className={`px-2.5 py-1 rounded border text-xs transition-colors
@@ -215,7 +219,7 @@ export default function AvailabilityView({ onPick }: {
         </div>
 
         <div className="text-sm text-imperial-navy mb-3">
-          Свободно в {meta.blockWord.toLowerCase()}е {activeBlock}: <b>{freeCount(inBlock)}</b>
+          Свободно{meta.single ? '' : ` в ${meta.blockWord.toLowerCase()}е ${activeBlock}`}: <b>{freeCount(inBlock)}</b>
           <span className="text-gray-500"> из {inBlock.length}</span>
           <span className="text-gray-500 hidden sm:inline"> · нажмите на свободную квартиру, чтобы сделать КП</span>
         </div>
@@ -224,15 +228,33 @@ export default function AvailabilityView({ onPick }: {
         {plan && shownFloor !== null && (
           <div className="bg-white rounded-lg border border-imperial-greige p-2 sm:p-3 mb-3">
             <div className="flex items-baseline justify-between mb-2">
-              <div className="text-sm font-semibold text-imperial-navy">План {shownFloor} этажа · {meta.blockWord.toLowerCase()} {activeBlock}</div>
+              <div className="text-sm font-semibold text-imperial-navy">План {shownFloor} этажа{meta.single ? '' : ` · ${meta.blockWord.toLowerCase()} ${activeBlock}`}</div>
               <div className="text-[11px] text-gray-500">нажмите на этаж в шахматке, чтобы сменить</div>
             </div>
+            {plans.length > 1 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {plans.map(pl => {
+                  const range = planFloors.filter(f => pl.floors && f >= pl.floors[0] && f <= pl.floors[1])
+                  const active = pl === plan
+                  return (
+                    <button
+                      key={pl.image}
+                      onClick={() => setPlanFloor(range.find(f => inBlock.some(a => a.floor === f && a.status === 'free')) ?? range[0] ?? null)}
+                      className={`px-2.5 py-1 rounded-full border text-xs font-semibold transition-colors
+                        ${active ? 'bg-imperial-navy border-imperial-navy text-white' : 'bg-white border-imperial-greige text-imperial-navy hover:border-imperial-bronze'}`}
+                    >
+                      {pl.floorLabel}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
             {(() => {
               const sides = plan.sides[activeBlock!]
               const sideCls = (s: { sea?: boolean }) => `text-[10px] sm:text-xs font-semibold tracking-wide ${s.sea ? 'text-sky-700' : 'text-gray-500'}`
               const onFloor = inBlock.filter(a => a.floor === shownFloor)
               return (
-                <div className="grid grid-cols-[18px_1fr_18px] sm:grid-cols-[22px_1fr_22px] grid-rows-[auto_1fr_auto] gap-1 items-center w-full sm:max-w-[640px] mx-auto">
+                <div className={`grid grid-cols-[18px_1fr_18px] sm:grid-cols-[22px_1fr_22px] grid-rows-[auto_1fr_auto] gap-1 items-center w-full mx-auto ${plan.perFloor > 10 ? 'sm:max-w-[960px]' : 'sm:max-w-[640px]'}`}>
                   <div />
                   <div className={`text-center ${sideCls(sides.top)}`}>{sides.top.sea ? '🌊 ' : '↑ '}{sides.top.label}</div>
                   <div />

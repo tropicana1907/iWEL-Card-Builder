@@ -130,12 +130,46 @@ def parse_sheet(ws, project):
     return res, skipped
 
 
+# AZUR Prime: колонки «НОМЕР 1…25» = «Номер N» на поэтажном плане, этажи 3–7, 8 — пентхаусы (не выводим).
+# Правило Катерины (20.10.2026): в продаже только голубые; персиковые и фиолетовые — не в продаже; остальные проданы.
+PRIME_FREE = {'9CC4E5', 'BCD7ED'}
+PRIME_CLOSED = {'F4AF81', '7030A0'}
+# На 3-м этаже (с террасами) планировки другие — площади по поэтажному плану, а не по строке шахматки
+PRIME_F3_AREAS = [20.63, 59.04, 28.87, 28.87, 28.87, 37.79, 37.79, 28.87, 28.78, 28.87, 59.04, 20.63, 26.04,
+                  30.76, 48.74, 28.63, 28.63, 28.63, 36.67, 36.67, 28.63, 28.63, 28.63, 48.74, 30.76]
+
+
+def parse_prime(ws):
+    head = next(r for r in range(1, 10) if str(ws.cell(row=r, column=2).value or '').upper().startswith('НОМЕР'))
+    cols = [(c, int(re.sub(r'\D', '', str(ws.cell(row=head, column=c).value))))
+            for c in range(2, 40) if str(ws.cell(row=head, column=c).value or '').upper().startswith('НОМЕР')]
+    typical = {pos: num(ws.cell(row=head + 1, column=c).value) for c, pos in cols}
+    res = []
+    for r in range(head + 2, head + 20):
+        fl = floor_of(re.sub(r'\s*эт.*', '', str(ws.cell(row=r, column=1).value or '')))
+        if not fl or fl < 3 or fl > 7:
+            continue
+        for c, pos in cols:
+            v = str(ws.cell(row=r, column=c).value or '')
+            n = re.sub(r'\D', '', v)
+            if not n:
+                continue
+            col = color(ws.cell(row=r, column=c))
+            st = 'free' if col in PRIME_FREE else 'not_for_sale' if col in PRIME_CLOSED else 'sold'
+            area = PRIME_F3_AREAS[pos - 1] if fl == 3 else typical[pos]
+            res.append({'section': 'Корпус 1', 'floor': fl, 'apt': n, 'area': area, 'status': st, 'pos': pos})
+    return res
+
+
 def main():
     project, files = sys.argv[1], sys.argv[2:]
     apts, skipped = [], []
     for f in files:
         wb = openpyxl.load_workbook(f)
         for ws in wb.worksheets:
+            if project == 'azur-prime':
+                apts += parse_prime(ws)
+                break
             a, s = parse_sheet(ws, project)
             apts += a
             skipped += s

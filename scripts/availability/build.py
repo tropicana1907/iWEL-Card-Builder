@@ -114,10 +114,11 @@ def main():
     ap.add_argument('--date', required=True)
     ap.add_argument('--towers')
     ap.add_argument('--imperial')
+    ap.add_argument('--azur-prime', dest='azur_prime')
     args = ap.parse_args()
     out = {'updatedAt': args.date, 'projects': {}}
-    for proj in ('towers', 'imperial'):
-        spec = getattr(args, proj)
+    for proj in ('towers', 'imperial', 'azur-prime'):
+        spec = getattr(args, proj.replace('-', '_'))
         if not spec:
             continue
         path, source = spec.split(':', 1)
@@ -127,7 +128,7 @@ def main():
         for a in d['apartments']:
             a = rule(a)
             apts.append({'block': block_no(a['section']), 'floor': a['floor'], 'apt': a['apt'],
-                         'area': a['area'], 'status': a['status']})
+                         'area': a['area'], 'status': a['status'], **({'pos': a['pos']} if 'pos' in a else {})})
         apts = add_closed_floors(proj, apply_block_status(proj, apply_overrides(proj, apts)))
         out['projects'][proj] = {'source': source, 'skipped': d.get('skipped', []), 'apartments': apts}
     dst = os.path.join(os.path.dirname(__file__), '..', '..', 'src', 'data', 'availability.json')

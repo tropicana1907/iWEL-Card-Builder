@@ -115,11 +115,17 @@ export const FLOORPLAN_TEMPLATES: AssetTemplate[] = [
   { id: 'towers-b5-kv4', project: 'towers', block: 5, label: 'Towers · №4 · 62,78 м²', src: `${BASE}/templates/floorplans/towers-b5-kv4-62.webp` },
   { id: 'towers-b5-kv5', project: 'towers', block: 5, label: 'Towers · №5 · 107,76 м²', src: `${BASE}/templates/floorplans/towers-3k-107.webp` },
   { id: 'towers-b5-kv7', project: 'towers', block: 5, label: 'Towers · №7 · 86,50 м²', src: `${BASE}/templates/floorplans/towers-b5-kv7-86.webp` },
+  // AZUR Prime — one building (block 1); «№N» = «Номер N» on the floor plan, typical for floors 3–7
+  { id: 'azur-prime-kv14', project: 'azur-prime', block: 1, label: 'AZUR Prime · №14 · 30,76 м² · 3–7 этаж', src: `${BASE}/templates/floorplans/azur-prime-kv14-30.webp` },
+  { id: 'azur-prime-kv17', project: 'azur-prime', block: 1, label: 'AZUR Prime · №17 · 28,63 м² · 3–7 этаж', src: `${BASE}/templates/floorplans/azur-prime-kv17-28.webp` },
+  { id: 'azur-prime-kv19', project: 'azur-prime', block: 1, label: 'AZUR Prime · №19 · 36,67 м² · 3–7 этаж', src: `${BASE}/templates/floorplans/azur-prime-kv19-36.webp` },
+  { id: 'azur-prime-kv20', project: 'azur-prime', block: 1, label: 'AZUR Prime · №20 · 36,67 м² · 3–7 этаж', src: `${BASE}/templates/floorplans/azur-prime-kv20-36.webp` },
 ]
 
 export const FLOORPLAN_TABS: { key: string; label: string }[] = [
   { key: 'imperial', label: 'Империал' },
   { key: 'towers', label: 'Towers' },
+  { key: 'azur-prime', label: 'AZUR Prime' },
 ]
 
 // Current project first, the rest after — the manager most often needs

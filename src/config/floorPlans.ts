@@ -22,6 +22,8 @@ export interface SideInfo {
 }
 
 export interface FloorPlan {
+  floors?: [number, number] // floors this plan covers (inclusive); omitted = every floor
+  floorLabel?: string // chip text, e.g. «3 этаж · с террасами»
   image: string
   aspect: number // width / height
   perFloor: number // apartments per floor — position = (apt − 1) % perFloor + 1
@@ -73,12 +75,104 @@ const TOWERS_123: FloorPlan = {
   },
 }
 
-const PLANS: Record<string, Record<string, FloorPlan>> = {
-  towers: { '1': TOWERS_123, '2': TOWERS_123, '3': TOWERS_123 },
+// AZUR Prime: 25 номеров на этаже, «Номер N» на плане = позиция N в шахматке. Море — сверху плана.
+const AZUR_PRIME_SIDES: Record<string, Record<PlanSide, SideInfo>> = {
+  '1': {
+    top: { label: 'Море', sea: true },
+    right: { label: '', blank: true },
+    bottom: { label: '', blank: true },
+    left: { label: '', blank: true },
+  },
+}
+const AZUR_PRIME_F3: FloorPlan = {
+  floors: [3, 3],
+  floorLabel: '3 этаж · с террасами',
+  image: `${BASE}/templates/floorplans-floor/azur-prime-f3.webp`,
+  aspect: 1536 / 1024,
+  perFloor: 25,
+  badge: { w: 5.2, h: 6.4 },
+  positions: [
+    { pos: 1, x: 9.1, y: 43.5, sides: ['left'] },
+    { pos: 2, x: 9.6, y: 30.2, sides: ['top'] },
+    { pos: 3, x: 21.7, y: 30.2, sides: ['top'] },
+    { pos: 4, x: 30.9, y: 30.2, sides: ['top'] },
+    { pos: 5, x: 38.3, y: 30.2, sides: ['top'] },
+    { pos: 6, x: 45.6, y: 30.2, sides: ['top'] },
+    { pos: 7, x: 54.6, y: 30.2, sides: ['top'] },
+    { pos: 8, x: 63.7, y: 30.2, sides: ['top'] },
+    { pos: 9, x: 71.0, y: 30.2, sides: ['top'] },
+    { pos: 10, x: 77.5, y: 30.2, sides: ['top'] },
+    { pos: 11, x: 90.2, y: 30.2, sides: ['top'] },
+    { pos: 12, x: 90.8, y: 43.5, sides: ['right'] },
+    { pos: 13, x: 93.4, y: 51.3, sides: ['right'] },
+    { pos: 14, x: 90.7, y: 61.0, sides: ['right'] },
+    { pos: 15, x: 83.5, y: 85.2, sides: ['bottom'] },
+    { pos: 16, x: 76.8, y: 85.2, sides: ['bottom'] },
+    { pos: 17, x: 69.7, y: 85.2, sides: ['bottom'] },
+    { pos: 18, x: 61.8, y: 85.2, sides: ['bottom'] },
+    { pos: 19, x: 55.5, y: 85.2, sides: ['bottom'] },
+    { pos: 20, x: 43.9, y: 85.2, sides: ['bottom'] },
+    { pos: 21, x: 37.8, y: 85.2, sides: ['bottom'] },
+    { pos: 22, x: 29.6, y: 85.2, sides: ['bottom'] },
+    { pos: 23, x: 23.4, y: 85.2, sides: ['bottom'] },
+    { pos: 24, x: 16.6, y: 85.2, sides: ['bottom'] },
+    { pos: 25, x: 9.1, y: 60.5, sides: ['left'] },
+  ],
+  sides: AZUR_PRIME_SIDES,
+}
+const AZUR_PRIME_F4_7: FloorPlan = {
+  floors: [4, 7],
+  floorLabel: '4–7 этажи',
+  image: `${BASE}/templates/floorplans-floor/azur-prime-f4-7.webp`,
+  aspect: 2000 / 1202,
+  perFloor: 25,
+  badge: { w: 4.4, h: 5.8 },
+  positions: [
+    { pos: 1, x: 9.2, y: 38.3, sides: ['left'] },
+    { pos: 2, x: 9.2, y: 23.1, sides: ['top'] },
+    { pos: 3, x: 21.9, y: 23.1, sides: ['top'] },
+    { pos: 4, x: 30.9, y: 23.1, sides: ['top'] },
+    { pos: 5, x: 36.4, y: 23.1, sides: ['top'] },
+    { pos: 6, x: 45.6, y: 23.0, sides: ['top'] },
+    { pos: 7, x: 54.2, y: 23.0, sides: ['top'] },
+    { pos: 8, x: 63.5, y: 23.1, sides: ['top'] },
+    { pos: 9, x: 69.1, y: 23.1, sides: ['top'] },
+    { pos: 10, x: 78.0, y: 23.0, sides: ['top'] },
+    { pos: 11, x: 91.0, y: 23.1, sides: ['top'] },
+    { pos: 12, x: 91.0, y: 38.3, sides: ['right'] },
+    { pos: 13, x: 94.0, y: 46.7, sides: ['right'] },
+    { pos: 14, x: 91.0, y: 57.8, sides: ['right'] },
+    { pos: 15, x: 83.4, y: 86.4, sides: ['bottom'] },
+    { pos: 16, x: 76.2, y: 86.7, sides: ['bottom'] },
+    { pos: 17, x: 70.9, y: 86.7, sides: ['bottom'] },
+    { pos: 18, x: 61.7, y: 86.7, sides: ['bottom'] },
+    { pos: 19, x: 56.0, y: 86.7, sides: ['bottom'] },
+    { pos: 20, x: 43.9, y: 86.7, sides: ['bottom'] },
+    { pos: 21, x: 38.2, y: 86.7, sides: ['bottom'] },
+    { pos: 22, x: 29.1, y: 86.7, sides: ['bottom'] },
+    { pos: 23, x: 23.8, y: 86.7, sides: ['bottom'] },
+    { pos: 24, x: 16.6, y: 86.4, sides: ['bottom'] },
+    { pos: 25, x: 9.0, y: 57.7, sides: ['left'] },
+  ],
+  sides: AZUR_PRIME_SIDES,
 }
 
-export function floorPlanFor(project: string, block: string): FloorPlan | null {
-  return PLANS[project]?.[block] ?? null
+const PLANS: Record<string, Record<string, FloorPlan | FloorPlan[]>> = {
+  towers: { '1': TOWERS_123, '2': TOWERS_123, '3': TOWERS_123 },
+  'azur-prime': { '1': [AZUR_PRIME_F3, AZUR_PRIME_F4_7] },
+}
+
+/** All plans of a building (one per floor range). */
+export function floorPlansFor(project: string, block: string): FloorPlan[] {
+  const p = PLANS[project]?.[block]
+  return !p ? [] : Array.isArray(p) ? p : [p]
+}
+
+/** The plan for a floor of a building; without a floor — its first plan. */
+export function floorPlanFor(project: string, block: string, floor?: number | null): FloorPlan | null {
+  const all = floorPlansFor(project, block)
+  if (floor == null) return all[0] ?? null
+  return all.find(p => !p.floors || (floor >= p.floors[0] && floor <= p.floors[1])) ?? null
 }
 
 export function planPosition(plan: FloorPlan, apt: string): PlanPosition | null {
