@@ -16,43 +16,24 @@ RULES = {
 # status=None — статус берётся из шахматки по порядку номеров; pos_status — исключения по позиции.
 FLOOR_OVERRIDES = {
     'imperial': {
-        ('5', 15): {'apts': list(range(141, 148)), 'areas': [83.8, 86.2, 57.3, 57.6, 57.3, 86.2, 83.8], 'status': 'free'},
-        ('5', 16): {'apts': list(range(148, 155)), 'areas': [68.65, 82.9, 45.7, 46.0, 45.7, 82.9, 68.65], 'status': 'free'},
-        # 09.10.2026 со слов руководителя продаж: 13 этаж свободен весь, на 14-м №5 в брони
-        ('2', 13): {'apts': None, 'areas': [79.8, 84.2, 54.8, 55.2, 54.8, 84.2, 79.8], 'status': 'free'},
-        ('2', 14): {'apts': None, 'areas': [65.8, 81.0, 44.2, 44.6, 44.2, 81.0, 65.8], 'status': 'free',
-                    'pos_status': {5: 'reserved'}},
+        ('5', 15): {'apts': list(range(141, 148)), 'areas': [83.8, 86.2, 57.3, 57.6, 57.3, 86.2, 83.8], 'status': None},
+        ('5', 16): {'apts': list(range(148, 155)), 'areas': [68.65, 82.9, 45.7, 46.0, 45.7, 82.9, 68.65], 'status': None},
+        ('2', 13): {'apts': None, 'areas': [79.8, 84.2, 54.8, 55.2, 54.8, 84.2, 79.8], 'status': None},
+        ('2', 14): {'apts': None, 'areas': [65.8, 81.0, 44.2, 44.6, 44.2, 81.0, 65.8], 'status': None},
     },
 }
 
 
-# Статусы целого блока по свежей шахматке, которую прислал руководитель продаж
-# (Bitrix-файл отстаёт). Белые клетки = свободны, цветные = проданы, 1 этаж не продаётся.
-# При следующем «обнови шахматки» сверить с файлом и удалить, если файл уже актуален.
+# Особая раскладка блоков (статусы берутся из цвета клеток шахматки — parse_chess.py).
+# Блок 4 Империала: 11 квартир на этаже по стоякам, 11–12 этажи закрыты.
 BLOCK_STATUS = {
-    'towers': {
-        '2': {'free': {119, 122, 123, 129, 152}, 'reserved': {156, 159}},  # корпус 2 от 12.10.2026: белые свободны, зелёные — бронь
-        '3': {'free': {18, 153, 154, 155, 157, 158, 159}},  # корпус 3 от 09.10.2026
-        '5': {  # шахматка корпуса 5 от 09.10.2026: свободны только белые
-            'free': {8, 12, 14, 18, 21, 26, 28, 29, 33, 35, 36, 40, 42, 56, 64, 77, 80, 85, 87, 99, 101},
-        },
-    },
     'imperial': {
-        '2': {  # шахматка блока 2 от 09.10.2026: свободны белые + 13–14 этажи (бронь кв. 135 — из FLOOR_OVERRIDES)
-            'free': {43, 69, 79, 83, 93, 106, 115,
-                     121, 122, 123, 124, 125, 126, 127, 131, 132, 133, 134, 136, 137},
-        },
-        '4': {  # шахматка блока 4 от 09.10.2026: 11 квартир на этаже по стоякам, 11–12 этажи закрыты
-            'free': {'1', '4/2', '46', '60', '24/2', '25', '28/2', '75', '32/2', '80'},
+        '4': {
             'columns': [75.59, 48.54, 93.36, 45.3, 26.95, 26.68, 76.1, 53.45, 52.6, 32.23, 25.55],
             'closed_floors': {11, 12},
             # Стояки, поделённые на две квартиры (45,3 + 26,95 и 52,6 + 32,23): если в шахматке у большой
             # нет номера, номер соседки делим на /1 и /2, как кв. 4/1 и 4/2
             'pairs': [(3, 4), (8, 9)],
-        },
-        '5': {  # шахматка блока 5 от 09.10.2026; кв. 150 (жёлтая) снята с продажи
-            'free': {12, 13, 26, 65, 73, 92, 102, 104, 105, 115, 119, 125, 126, 131, 140,
-                     141, 142, 143, 144, 145, 146, 147, 148, 149, 151, 152, 153, 154},
         },
     },
 }
@@ -79,13 +60,10 @@ def apply_block_status(proj, apts):
     for a in apts:
         r = rules.get(a['block'])
         if r:
-            key = a['apt'] if isinstance(next(iter(r['free'])), str) else int(re.sub(r'\D', '', a['apt']) or 0)
-            if key in r.get('reserved', ()):
-                a = {**a, 'status': 'reserved'}
-            elif a['floor'] in r.get('closed_floors', ()):
+            if a['floor'] in r.get('closed_floors', ()):
                 a = {**a, 'status': 'not_for_sale', 'hide': True}
-            elif a['status'] != 'reserved' or key in r['free']:  # бронь сохраняем, если квартиру не открыли явно
-                a = {**a, 'status': 'not_for_sale' if a['floor'] == 1 else ('free' if key in r['free'] else 'sold')}
+            elif a['floor'] == 1:
+                a = {**a, 'status': 'not_for_sale'}
             if r.get('columns'):
                 a['ord'] = min(range(len(r['columns'])), key=lambda i: abs(r['columns'][i] - a['area']))
         out.append(a)
@@ -117,8 +95,8 @@ def apply_overrides(proj, apts):
         return apts
     out = [a for a in apts if (a['block'], a['floor']) not in rules]
     for (block, floor), rule in rules.items():
-        orig = sorted([a for a in apts if a['block'] == block and a['floor'] == floor],
-                      key=lambda a: float(a['apt'].replace('/', '.')))
+        # Порядок клеток слева направо = позиции №1–7 (номер в клетке бывает записан с ошибкой, например «45» вместо 150)
+        orig = [a for a in apts if a['block'] == block and a['floor'] == floor]
         nums = [str(n) for n in rule['apts']] if rule['apts'] else [a['apt'] for a in orig][:len(rule['areas'])]
         for i, area in enumerate(rule['areas']):
             status = rule.get('pos_status', {}).get(i + 1) or rule['status'] or (orig[i]['status'] if i < len(orig) else 'free')

@@ -10,6 +10,11 @@ import openpyxl
 # Голубой 00B0F0 в обеих шахматках = первый этаж / «не продаётся» (в легенде Империала, блок 3)
 FIXED_COLORS = {'00B0F0': 'not_for_sale'}
 
+# Правило отдела продаж (Катерина, 09–20.10.2026): белая клетка = в продаже, зелёная = бронь, любой другой цвет = продана.
+# Белый в xlsx бывает тремя способами: тема 0 без оттенка, системный фон (indexed 65) или клетка без заливки.
+WHITE = {'th0/0.0', 'i65', '-', 'FFFFFF'}
+GREEN = {'00B050'}
+
 LEGEND_WORDS = {'купленная': 'sold', 'продана': 'sold', 'бронь': 'reserved', 'не продается': 'not_for_sale',
                 'рассрочка': 'sold'}
 
@@ -107,13 +112,14 @@ def parse_sheet(ws, project):
                     continue
                 apt = parts[0] + ('/' + parts[1] if '\\' in s or '/' in s else '')
                 col = color(ws.cell(row=r, column=c))
-                st = leg.get(col)
-                if st is None:
-                    st = 'sold' if owners.get(apt) else 'free'
-                elif st == 'free' and owners.get(apt):
-                    st = 'sold'
-                if st in ('sold',) and not owners.get(apt) and leg.get(col) is None:
+                if col in FIXED_COLORS:
+                    st = FIXED_COLORS[col]
+                elif col in WHITE:
                     st = 'free'
+                elif col in GREEN:
+                    st = 'reserved'
+                else:
+                    st = 'sold'
                 sec.append({'section': name, 'floor': fl, 'apt': apt, 'area': a, 'status': st})
         # Заготовка шахматки (на каждом этаже «Кв1…Кв7») — корпус ещё не в продаже
         nums = [x['apt'] for x in sec]
