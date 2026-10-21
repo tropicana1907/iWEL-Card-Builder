@@ -160,6 +160,29 @@ def parse_prime(ws):
     return res
 
 
+# AZUR Residence: строка «НОВАЯ» — площади 16 позиций типового этажа (позиция = колонка), этажи 2–12, 13 — пентхаусы.
+# Номера на 2–9 этажах бывают разделены («14\\1», «14\\2»). Правило Катерины (21.10.2026): белые — в продаже, остальные — проданы.
+def parse_residence(ws):
+    hr, hc = next((r, c) for r in range(1, 15) for c in range(1, 6)
+                  if str(ws.cell(row=r, column=c).value or '').strip().upper() == 'НОВАЯ')
+    cols = [c for c in range(hc + 1, hc + 20) if num(ws.cell(row=hr, column=c).value)]
+    res = []
+    for r in range(hr + 1, hr + 20):
+        fl = floor_of(ws.cell(row=r, column=hc).value)
+        if not fl or fl < 2 or fl > 12:
+            continue
+        for i, c in enumerate(cols):
+            v = str(ws.cell(row=r, column=c).value or '').strip()
+            parts = re.findall(r'\d+', v)
+            if not parts:
+                continue
+            apt = parts[0] + ('/' + parts[1] if len(parts) > 1 else '')
+            st = 'free' if color(ws.cell(row=r, column=c)) in WHITE else 'sold'
+            res.append({'section': 'Корпус 1', 'floor': fl, 'apt': apt, 'area': num(ws.cell(row=hr, column=c).value),
+                        'status': st, 'pos': i + 1})
+    return res
+
+
 def main():
     project, files = sys.argv[1], sys.argv[2:]
     apts, skipped = [], []
@@ -168,6 +191,9 @@ def main():
         for ws in wb.worksheets:
             if project == 'azur-prime':
                 apts += parse_prime(ws)
+                break
+            if project == 'azur-residence':
+                apts += parse_residence(ws)
                 break
             a, s = parse_sheet(ws, project)
             apts += a

@@ -115,9 +115,10 @@ def main():
     ap.add_argument('--towers')
     ap.add_argument('--imperial')
     ap.add_argument('--azur-prime', dest='azur_prime')
+    ap.add_argument('--azur-residence', dest='azur_residence')
     args = ap.parse_args()
     out = {'updatedAt': args.date, 'projects': {}}
-    for proj in ('towers', 'imperial', 'azur-prime'):
+    for proj in ('towers', 'imperial', 'azur-prime', 'azur-residence'):
         spec = getattr(args, proj.replace('-', '_'))
         if not spec:
             continue

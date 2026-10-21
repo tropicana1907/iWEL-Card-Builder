@@ -20,7 +20,7 @@ export interface AvailabilityApt {
   ord?: number // column (riser) on the floor, when the chessboard numbering doesn't give it
   hide?: boolean // closed floor / riser without a number — grey cell, no number or area
 }
-export type AvailabilityProject = 'imperial' | 'towers' | 'azur-prime'
+export type AvailabilityProject = 'imperial' | 'towers' | 'azur-prime' | 'azur-residence'
 
 interface Snapshot {
   updatedAt: string
@@ -32,6 +32,7 @@ const PROJECTS: { key: AvailabilityProject; label: string; blockWord: string; si
   { key: 'imperial', label: 'Империал', blockWord: 'Блок' },
   { key: 'towers', label: 'Towers', blockWord: 'Корпус' },
   { key: 'azur-prime', label: 'AZUR Prime', blockWord: 'Корпус', single: true },
+  { key: 'azur-residence', label: 'AZUR Residence', blockWord: 'Корпус', single: true },
 ]
 
 const SIZE_FILTERS: { key: string; label: string; test: (a: number) => boolean }[] = [
@@ -142,7 +143,8 @@ export default function AvailabilityView({ onPick }: {
 
   const inBlock = (proj?.apartments ?? []).filter(a => a.block === activeBlock)
   const floors = Array.from(new Set(inBlock.map(a => a.floor))).sort((a, b) => b - a)
-  const denseGrid = Math.max(0, ...floors.map(f => inBlock.filter(a => a.floor === f).length)) > 16
+  const perFloorMax = Math.max(0, ...floors.map(f => inBlock.filter(a => a.floor === f).length))
+  const denseGrid = perFloorMax > 12
   const freeCount = (list: AvailabilityApt[]) => list.filter(a => a.status === 'free' && sizeTest(a.area, a)).length
   // Floor shown on the plan: the one picked, else the highest floor with a free apartment
   const planFloors = floors.filter(f => !!floorPlanFor(project, activeBlock!, f))
@@ -266,7 +268,7 @@ export default function AvailabilityView({ onPick }: {
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={plan.image} alt={`План этажа, ${meta.blockWord.toLowerCase()} ${activeBlock}`} className="absolute inset-0 w-full h-full object-contain rounded" />
                     {onFloor.map(a => {
-                      const p = planPosition(plan, a.apt)
+                      const p = planPosition(plan, a.apt, a.pos)
                       if (!p) return null
                       const clickable = a.status === 'free' || a.status === 'reserved'
                       const onSale = clickable
@@ -323,7 +325,7 @@ export default function AvailabilityView({ onPick }: {
             {floors.map(fl => {
               const apts = inBlock.filter(a => a.floor === fl)
                 .sort((a, b) => (a.ord ?? aptNum(a.apt)) - (b.ord ?? aptNum(b.apt)))
-              const cellW = denseGrid ? 'w-[44px] sm:w-[34px] px-0.5' : 'w-[58px] sm:w-[68px] px-1'
+              const cellW = !denseGrid ? 'w-[58px] sm:w-[68px] px-1' : perFloorMax > 16 ? 'w-[44px] sm:w-[34px] px-0.5' : 'w-[46px] sm:w-[54px] px-0.5'
               return (
                 <div key={fl} className={`flex items-stretch ${denseGrid ? 'gap-0.5' : 'gap-1'}`}>
                   {plan ? (
@@ -356,8 +358,8 @@ export default function AvailabilityView({ onPick }: {
                       >
                         {denseGrid ? (
                           <>
-                            <div className="text-[9px] font-semibold text-center">{a.apt}</div>
-                            <div className="text-[7.5px] text-center">{fmtArea(a.area)}</div>
+                            <div className={`${perFloorMax > 16 ? 'text-[9px]' : 'text-[10px]'} font-semibold text-center`}>{a.apt}</div>
+                            <div className={`${perFloorMax > 16 ? 'text-[7.5px]' : 'text-[9px]'} text-center`}>{fmtArea(a.area)}</div>
                           </>
                         ) : (
                           <>

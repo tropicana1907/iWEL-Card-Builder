@@ -119,6 +119,10 @@ export const FLOORPLAN_TEMPLATES: AssetTemplate[] = [
   { id: 'azur-prime-kv14', project: 'azur-prime', block: 1, label: 'AZUR Prime · №14 · 30,76 м² · 3–7 этаж', src: `${BASE}/templates/floorplans/azur-prime-kv14-30.webp` },
   { id: 'azur-prime-kv17', project: 'azur-prime', block: 1, label: 'AZUR Prime · №17 · 28,63 м² · 3–7 этаж', src: `${BASE}/templates/floorplans/azur-prime-kv17-28.webp` },
   { id: 'azur-prime-kv19', project: 'azur-prime', block: 1, label: 'AZUR Prime · №19 · 36,67 м² · 3–7 этаж', src: `${BASE}/templates/floorplans/azur-prime-kv19-36.webp` },
+  // AZUR Residence — one building (block 1), typical floors 2–12 (3D plans from the sales presentation)
+  { id: 'azur-residence-28', project: 'azur-residence', block: 1, label: 'AZUR Residence · Студия · 28,45 м² · 2–12 этаж', src: `${BASE}/templates/floorplans/azur-residence-studio-28.webp` },
+  { id: 'azur-residence-35', project: 'azur-residence', block: 1, label: 'AZUR Residence · Апартаменты со спальней · 35,30 м² · 2–12 этаж', src: `${BASE}/templates/floorplans/azur-residence-1s-35.webp` },
+  { id: 'azur-residence-45', project: 'azur-residence', block: 1, label: 'AZUR Residence · Апартаменты со спальней · 45,12 м² · 2–12 этаж', src: `${BASE}/templates/floorplans/azur-residence-1s-45.webp` },
   { id: 'azur-prime-kv20', project: 'azur-prime', block: 1, label: 'AZUR Prime · №20 · 36,67 м² · 3–7 этаж', src: `${BASE}/templates/floorplans/azur-prime-kv20-36.webp` },
 ]
 
@@ -126,6 +130,7 @@ export const FLOORPLAN_TABS: { key: string; label: string }[] = [
   { key: 'imperial', label: 'Империал' },
   { key: 'towers', label: 'Towers' },
   { key: 'azur-prime', label: 'AZUR Prime' },
+  { key: 'azur-residence', label: 'AZUR Residence' },
 ]
 
 // Current project first, the rest after — the manager most often needs
