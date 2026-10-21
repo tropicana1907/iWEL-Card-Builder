@@ -142,6 +142,7 @@ export default function AvailabilityView({ onPick }: {
 
   const inBlock = (proj?.apartments ?? []).filter(a => a.block === activeBlock)
   const floors = Array.from(new Set(inBlock.map(a => a.floor))).sort((a, b) => b - a)
+  const denseGrid = Math.max(0, ...floors.map(f => inBlock.filter(a => a.floor === f).length)) > 16
   const freeCount = (list: AvailabilityApt[]) => list.filter(a => a.status === 'free' && sizeTest(a.area, a)).length
   // Floor shown on the plan: the one picked, else the highest floor with a free apartment
   const planFloors = floors.filter(f => !!floorPlanFor(project, activeBlock!, f))
@@ -316,14 +317,15 @@ export default function AvailabilityView({ onPick }: {
           </div>
         )}
 
-        {/* Floors */}
+        {/* Floors — 25 apartments a floor (AZUR Prime) get narrow cells so the whole floor fits without scrolling */}
         <div className="bg-white rounded-lg border border-imperial-greige p-2 sm:p-3 overflow-x-auto">
           <div className="min-w-max space-y-1">
             {floors.map(fl => {
               const apts = inBlock.filter(a => a.floor === fl)
                 .sort((a, b) => (a.ord ?? aptNum(a.apt)) - (b.ord ?? aptNum(b.apt)))
+              const cellW = denseGrid ? 'w-[44px] sm:w-[34px] px-0.5' : 'w-[58px] sm:w-[68px] px-1'
               return (
-                <div key={fl} className="flex items-stretch gap-1">
+                <div key={fl} className={`flex items-stretch ${denseGrid ? 'gap-0.5' : 'gap-1'}`}>
                   {plan ? (
                     <button
                       onClick={() => setPlanFloor(fl)}
@@ -338,7 +340,7 @@ export default function AvailabilityView({ onPick }: {
                   )}
                   {apts.map((a, i) => {
                     if (a.hide) {
-                      return <div key={`h-${fl}-${i}`} title="Не продаётся" className="w-[58px] sm:w-[68px] shrink-0 rounded border border-gray-200 bg-gray-200" />
+                      return <div key={`h-${fl}-${i}`} title="Не продаётся" className={`${cellW} shrink-0 rounded border border-gray-200 bg-gray-200`} />
                     }
                     const dim = a.status === 'free' && !sizeTest(a.area, a)
                     const clickable = a.status === 'free' || a.status === 'reserved'
@@ -349,11 +351,20 @@ export default function AvailabilityView({ onPick }: {
                         disabled={!clickable}
                         {...aptHandlers(a)}
                         title={clickable && findAptPlan(project, a) ? undefined : `Кв. ${a.apt} · ${fmtArea(a.area)} м² · ${fl} этаж${view ? ` · окна: ${view}` : ''}`}
-                        className={`w-[58px] sm:w-[68px] shrink-0 rounded border px-1 py-1 text-left leading-tight transition-colors
+                        className={`${cellW} shrink-0 rounded border py-1 text-left leading-tight transition-colors
                           ${STATUS_STYLE[a.status]} ${dim ? 'opacity-30' : ''}`}
                       >
-                        <div className="text-[11px] font-semibold">№{a.apt}{plan && showSea(a) ? ' 🌊' : ''}</div>
-                        <div className="text-[10px]">{fmtArea(a.area)} м²</div>
+                        {denseGrid ? (
+                          <>
+                            <div className="text-[9px] font-semibold text-center">{a.apt}</div>
+                            <div className="text-[7.5px] text-center">{fmtArea(a.area)}</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-[11px] font-semibold">№{a.apt}{plan && showSea(a) ? ' 🌊' : ''}</div>
+                            <div className="text-[10px]">{fmtArea(a.area)} м²</div>
+                          </>
+                        )}
                       </button>
                     )
                   })}
