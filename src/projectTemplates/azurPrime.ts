@@ -5,7 +5,7 @@ export const azurPrimeTemplate: ProjectTemplate = {
   name: 'AZUR PRIME',
   shortName: 'AZUR PRIME',
   slogan: 'ЖИЗНЬ НА ВЫСШЕМ УРОВНЕ',
-  address: '',
+  address: 'Каспийск, ул. Ленина',
   disclaimer:
     'Площади указаны по проектной документации. Итоговые параметры могут незначительно отличаться. Предложение не является публичной офертой.',
   compassOrientation: {

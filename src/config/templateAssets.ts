@@ -37,6 +37,19 @@ export const SITEPLAN_TEMPLATES: AssetTemplate[] = [
     label: 'Towers — генплан (корпуса A–C, 1–5)',
     src: `${BASE}/templates/siteplans/towers.webp`,
   },
+  // AZUR Prime and AZUR Residence stand next to each other — one situational plan for both
+  {
+    id: 'azur-prime-siteplan',
+    project: 'azur-prime',
+    label: 'AZUR Prime — ситуационный план (море, парк, Казанская церковь)',
+    src: `${BASE}/templates/siteplans/azur-kaspiysk.webp`,
+  },
+  {
+    id: 'azur-residence-siteplan',
+    project: 'azur-residence',
+    label: 'AZUR Residence — ситуационный план (море, Azimut, стадион)',
+    src: `${BASE}/templates/siteplans/azur-kaspiysk.webp`,
+  },
 ]
 
 // Types, areas and images come from the official project presentations —

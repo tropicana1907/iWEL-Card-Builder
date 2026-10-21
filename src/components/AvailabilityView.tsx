@@ -237,7 +237,7 @@ export default function AvailabilityView({ onPick }: {
             {plans.length > 1 && (
               <div className="flex flex-wrap gap-1.5 mb-2">
                 {plans.map(pl => {
-                  const range = planFloors.filter(f => pl.floors && f >= pl.floors[0] && f <= pl.floors[1])
+                  const range = planFloors.filter(f => pl.floorList ? pl.floorList.includes(f) : pl.floors && f >= pl.floors[0] && f <= pl.floors[1])
                   const active = pl === plan
                   return (
                     <button
@@ -273,6 +273,7 @@ export default function AvailabilityView({ onPick }: {
                       const clickable = a.status === 'free' || a.status === 'reserved'
                       const onSale = clickable
                       const dim = a.status === 'free' && !sizeTest(a.area, a)
+                      if (compact && !onSale && plan.soldOverlay === false) return null
                       if (compact && !onSale) {
                         // Dense plan: the drawing already carries the number and area — sold ones are just greyed out
                         return (

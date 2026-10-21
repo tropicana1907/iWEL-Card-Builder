@@ -25,6 +25,8 @@ export interface SideInfo {
 
 export interface FloorPlan {
   floors?: [number, number] // floors this plan covers (inclusive); omitted = every floor
+  floorList?: number[] // or an explicit list (odd / even floors)
+  soldOverlay?: boolean // dense plans grey out the drawn labels of sold apartments; off when labels don't match positions
   floorLabel?: string // chip text, e.g. «3 этаж · с террасами»
   image: string
   aspect: number // width / height
@@ -159,47 +161,78 @@ const AZUR_PRIME_F4_7: FloorPlan = {
   sides: AZUR_PRIME_SIDES,
 }
 
-// AZUR Residence: типовой этаж 2–12, 16 апартаментов; позиция = колонка шахматки (по плану из презентации).
-// Стороны света по плану не подтверждены — подписи и вид не выводим.
-const AZUR_RESIDENCE_F2_12: FloorPlan = {
-  floors: [2, 12],
-  floorLabel: '2–12 этажи',
-  image: `${BASE}/templates/floorplans-floor/azur-residence-f2-12.webp`,
-  aspect: 2262 / 1417,
-  perFloor: 16,
-  badge: { w: 5.6, h: 5.4 },
-  positions: [
-    { pos: 1, x: 44.9, y: 62.8, cx: 44.9, cy: 62.8, sides: ['bottom'] },
-    { pos: 2, x: 28.0, y: 74.8, cx: 28.0, cy: 74.8, sides: ['bottom'] },
-    { pos: 3, x: 18.9, y: 62.8, cx: 18.9, cy: 62.8, sides: ['bottom'] },
-    { pos: 4, x: 16.2, y: 22.0, cx: 16.2, cy: 22.0, sides: ['top'] },
-    { pos: 5, x: 25.7, y: 22.5, cx: 25.7, cy: 22.5, sides: ['top'] },
-    { pos: 6, x: 34.6, y: 22.5, cx: 34.6, cy: 22.5, sides: ['top'] },
-    { pos: 7, x: 41.5, y: 22.5, cx: 41.5, cy: 22.5, sides: ['top'] },
-    { pos: 8, x: 50.8, y: 22.5, cx: 50.8, cy: 22.5, sides: ['top'] },
-    { pos: 9, x: 58.5, y: 22.5, cx: 58.5, cy: 22.5, sides: ['top'] },
-    { pos: 10, x: 65.5, y: 22.5, cx: 65.5, cy: 22.5, sides: ['top'] },
-    { pos: 11, x: 74.8, y: 22.5, cx: 74.8, cy: 22.5, sides: ['top'] },
-    { pos: 12, x: 84.0, y: 22.0, cx: 84.0, cy: 22.0, sides: ['top'] },
-    { pos: 13, x: 81.3, y: 62.8, cx: 81.3, cy: 62.8, sides: ['bottom'] },
-    { pos: 14, x: 73.3, y: 74.8, cx: 73.3, cy: 74.8, sides: ['bottom'] },
-    { pos: 15, x: 65.5, y: 62.8, cx: 65.5, cy: 62.8, sides: ['bottom'] },
-    { pos: 16, x: 58.5, y: 62.8, cx: 58.5, cy: 62.8, sides: ['bottom'] },
-  ],
-  sides: {
-    '1': {
-      top: { label: '', blank: true },
-      right: { label: '', blank: true },
-      bottom: { label: '', blank: true },
-      left: { label: '', blank: true },
-    },
+// AZUR Residence (21.10.2026, планы Катерины): 2-й этаж — 16 апартаментов как в шахматке; 3–12 — по проекту АР
+// (12 номеров, части больших номеров продаются отдельно — их таблички стоят в своей половине). Море — сверху плана.
+const AZUR_RESIDENCE_SIDES: Record<string, Record<PlanSide, SideInfo>> = {
+  '1': {
+    top: { label: 'Море', sea: true },
+    right: { label: '', blank: true },
+    bottom: { label: '', blank: true },
+    left: { label: '', blank: true },
   },
 }
+const AZUR_RESIDENCE_F2: FloorPlan = {
+  floors: [2, 2],
+  floorLabel: '2 этаж',
+  image: `${BASE}/templates/floorplans-floor/azur-residence-f2.webp`,
+  aspect: 2000 / 1197,
+  perFloor: 16,
+  badge: { w: 6.4, h: 6.4 },
+  positions: [
+    { pos: 1, x: 31.4, y: 76.5, cx: 31.4, cy: 76.5, sides: ['bottom'] },
+    { pos: 2, x: 22.0, y: 83.4, cx: 22.0, cy: 83.4, sides: ['bottom'] },
+    { pos: 3, x: 12.7, y: 76.0, cx: 12.7, cy: 76.0, sides: ['bottom'] },
+    { pos: 4, x: 10.0, y: 22.6, cx: 10.0, cy: 22.6, sides: ['top'] },
+    { pos: 5, x: 22.0, y: 22.6, cx: 22.0, cy: 22.6, sides: ['top'] },
+    { pos: 6, x: 31.4, y: 22.6, cx: 31.4, cy: 22.6, sides: ['top'] },
+    { pos: 7, x: 40.8, y: 22.6, cx: 40.8, cy: 22.6, sides: ['top'] },
+    { pos: 8, x: 49.9, y: 22.6, cx: 49.9, cy: 22.6, sides: ['top'] },
+    { pos: 9, x: 59.2, y: 22.6, cx: 59.2, cy: 22.6, sides: ['top'] },
+    { pos: 10, x: 68.8, y: 22.6, cx: 68.8, cy: 22.6, sides: ['top'] },
+    { pos: 11, x: 78.1, y: 22.6, cx: 78.1, cy: 22.6, sides: ['top'] },
+    { pos: 12, x: 90.0, y: 22.6, cx: 90.0, cy: 22.6, sides: ['top'] },
+    { pos: 13, x: 87.4, y: 76.0, cx: 87.4, cy: 76.0, sides: ['bottom'] },
+    { pos: 14, x: 78.1, y: 83.4, cx: 78.1, cy: 83.4, sides: ['bottom'] },
+    { pos: 15, x: 68.8, y: 76.5, cx: 68.8, cy: 76.5, sides: ['bottom'] },
+    { pos: 16, x: 59.2, y: 76.5, cx: 59.2, cy: 76.5, sides: ['bottom'] },
+  ],
+  sides: AZUR_RESIDENCE_SIDES,
+}
+const AZUR_RESIDENCE_ODD: FloorPlan = {
+  floorList: [3, 5, 7, 9, 11],
+  floorLabel: '3, 5, 7, 9, 11 этажи',
+  image: `${BASE}/templates/floorplans-floor/azur-residence-odd.webp`,
+  aspect: 2000 / 1211,
+  perFloor: 16,
+  soldOverlay: false,
+  badge: { w: 6.4, h: 6.4 },
+  positions: [
+    { pos: 1, x: 31.8, y: 75.3, cx: 31.8, cy: 75.3, sides: ['bottom'] },
+    { pos: 2, x: 22.0, y: 79.3, cx: 22.0, cy: 79.3, sides: ['bottom'] },
+    { pos: 3, x: 10.8, y: 75.1, cx: 10.8, cy: 75.1, sides: ['bottom'] },
+    { pos: 4, x: 10.7, y: 23.0, cx: 10.7, cy: 23.0, sides: ['top'] },
+    { pos: 5, x: 22.4, y: 23.0, cx: 22.4, cy: 23.0, sides: ['top'] },
+    { pos: 6, x: 31.8, y: 23.0, cx: 31.8, cy: 23.0, sides: ['top'] },
+    { pos: 7, x: 41.0, y: 27.3, cx: 41.0, cy: 27.3, sides: ['top'] },
+    { pos: 8, x: 49.8, y: 27.3, cx: 49.8, cy: 27.3, sides: ['top'] },
+    { pos: 9, x: 59.1, y: 23.0, cx: 59.1, cy: 23.0, sides: ['top'] },
+    { pos: 10, x: 68.5, y: 23.0, cx: 68.5, cy: 23.0, sides: ['top'] },
+    { pos: 11, x: 77.7, y: 23.0, cx: 77.7, cy: 23.0, sides: ['top'] },
+    { pos: 12, x: 89.3, y: 23.0, cx: 89.3, cy: 23.0, sides: ['top'] },
+    { pos: 13, x: 89.2, y: 75.1, cx: 89.2, cy: 75.1, sides: ['bottom'] },
+    { pos: 14, x: 78.0, y: 79.3, cx: 78.0, cy: 79.3, sides: ['bottom'] },
+    { pos: 15, x: 67.0, y: 77.0, cx: 67.0, cy: 77.0, sides: ['bottom'] },
+    { pos: 16, x: 58.2, y: 79.3, cx: 58.2, cy: 79.3, sides: ['bottom'] },
+  ],
+  sides: AZUR_RESIDENCE_SIDES,
+}
+const AZUR_RESIDENCE_EVEN: FloorPlan = { ...AZUR_RESIDENCE_ODD, floorList: [4, 6, 8, 10, 12], floorLabel: '4, 6, 8, 10, 12 этажи',
+  image: `${BASE}/templates/floorplans-floor/azur-residence-even.webp` }
 
 const PLANS: Record<string, Record<string, FloorPlan | FloorPlan[]>> = {
   towers: { '1': TOWERS_123, '2': TOWERS_123, '3': TOWERS_123 },
   'azur-prime': { '1': [AZUR_PRIME_F3, AZUR_PRIME_F4_7] },
-  'azur-residence': { '1': [AZUR_RESIDENCE_F2_12] },
+  'azur-residence': { '1': [AZUR_RESIDENCE_F2, AZUR_RESIDENCE_ODD, AZUR_RESIDENCE_EVEN] },
 }
 
 /** All plans of a building (one per floor range). */
@@ -212,7 +245,8 @@ export function floorPlansFor(project: string, block: string): FloorPlan[] {
 export function floorPlanFor(project: string, block: string, floor?: number | null): FloorPlan | null {
   const all = floorPlansFor(project, block)
   if (floor == null) return all[0] ?? null
-  return all.find(p => !p.floors || (floor >= p.floors[0] && floor <= p.floors[1])) ?? null
+  return all.find(p => p.floorList ? p.floorList.includes(floor)
+    : !p.floors || (floor >= p.floors[0] && floor <= p.floors[1])) ?? null
 }
 
 /** Position of an apartment on the plan: the chessboard column when known (AZUR Residence numbers like «14/1»

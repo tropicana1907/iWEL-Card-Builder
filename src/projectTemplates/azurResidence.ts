@@ -5,7 +5,7 @@ export const azurResidenceTemplate: ProjectTemplate = {
   name: 'AZUR Residence',
   shortName: 'AZUR Residence',
   slogan: 'ЖИЗНЬ НА ВЫСШЕМ УРОВНЕ',
-  address: '',
+  address: 'Каспийск, ул. М. Халилова, 2А',
   disclaimer:
     'Площади указаны по проектной документации. Итоговые параметры могут незначительно отличаться. Предложение не является публичной офертой.',
   compassOrientation: {
